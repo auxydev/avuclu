@@ -3,6 +3,8 @@
 > Hocanın derste "buradan soru çıkacak" dediği konular + yüklenen iki PDF'in (*7-YapayZeka ilk* ve *Makine Öğrenmesine Giriş — Banu Diri*) özeti.
 > **⭐ En önemli konu: Karınca Kolonisi Optimizasyonu** — bu yüzden en detaylı bölüm o, elle çözülmüş sayısal örnek de içeriyor.
 >
+> 🆕 **Eklenenler:** Ayrı bir **[Yapay Zekâda Çıkarım](#4-yapay-zekâda-çıkarım-inference-nasıl-yapılır)** bölümü (mantık kuralları, adım adım ileri/geri zincirleme, çakışma çözümü, CF / Bayes / bulanık çıkarım hesapları) · ACS–MMAS formülleri · ateşböceği elle örneği · ajan ortam özellikleri, ReAct izi, agentic desenler · KNN ve Naive Bayes elle örnekleri, çok sınıflı karışıklık matrisi, **ROC'u elle çizme** · aktivasyon fonksiyonları, **perceptron elle eğitimi ve XOR** · 18 yeni soru.
+>
 > Tüm görseller `images/` klasöründe; çoğu gerçek bir simülasyon/hesaplama çalıştırılarak üretildi (ör. ACO gerçekten 25 şehirlik bir problemi çözüyor, ROC eğrileri gerçek modellerden hesaplandı).
 
 ---
@@ -12,13 +14,14 @@
 1. [⭐ Karınca Kolonisi Optimizasyonu (ACO)](#1-karınca-kolonisi-optimizasyonu-aco)
 2. [🔥 Ateşböceği Algoritması (Firefly)](#2-ateşböceği-algoritması-firefly-algorithm)
 3. [📚 Uzman Sistemler](#3-uzman-sistemler-expert-systems)
-4. [🤖 Agentic AI ve Gerçek Dünya Uygulamaları](#4-agentic-ai-ajan-tabanlı-yapay-zekâ)
-5. [📊 Makine Öğrenmesi: Sınıflandırma, Karışıklık Matrisi, ROC](#5-makine-öğrenmesi-algoritmaları-ve-değerlendirme-ölçütleri)
-6. [⚡ Nöronların Haberleşmesi ve Beynin Veriyi Algılaması](#6-nöronların-haberleşmesi-ve-beynin-veriyi-algılaması)
-7. [📘 Ek: Temel YZ Kavramları (PDF 1 Özeti)](#7-ek-temel-yz-kavramları-pdf-1-özeti)
-8. [🔗 Konular Arası Bağlantılar (Büyük Resim)](#8-konular-arası-bağlantılar-büyük-resim)
-9. [📝 Sınav Öncesi Hızlı Tekrar + Formül Kağıdı](#9-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)
-10. [❓ Olası Sınav Soruları ve Cevapları](#10-olası-sınav-soruları-ve-cevapları)
+4. [🧩 Yapay Zekâda Çıkarım (Inference) Nasıl Yapılır?](#4-yapay-zekâda-çıkarım-inference-nasıl-yapılır)
+5. [🤖 Agentic AI ve Gerçek Dünya Uygulamaları](#5-agentic-ai-ajan-tabanlı-yapay-zekâ)
+6. [📊 Makine Öğrenmesi: Sınıflandırma, Karışıklık Matrisi, ROC](#6-makine-öğrenmesi-algoritmaları-ve-değerlendirme-ölçütleri)
+7. [⚡ Nöronların Haberleşmesi ve Beynin Veriyi Algılaması](#7-nöronların-haberleşmesi-ve-beynin-veriyi-algılaması)
+8. [📘 Ek: Temel YZ Kavramları (PDF 1 Özeti)](#8-ek-temel-yz-kavramları-pdf-1-özeti)
+9. [🔗 Konular Arası Bağlantılar (Büyük Resim)](#9-konular-arası-bağlantılar-büyük-resim)
+10. [📝 Sınav Öncesi Hızlı Tekrar + Formül Kağıdı](#10-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)
+11. [❓ Olası Sınav Soruları ve Cevapları](#11-olası-sınav-soruları-ve-cevapları)
 
 ---
 
@@ -247,6 +250,38 @@ Aşağıdaki görsel, yukarıdaki formüllerle yazılmış gerçek bir ACO progr
 | **MAX-MIN AS (MMAS)** | Stützle & Hoos, 2000 | Feromon $[\tau_{min}, \tau_{max}]$ aralığında **sınırlandırılır** → durgunluk önlenir; sadece en iyi karınca feromon bırakır |
 | **AntNet** | Di Caro & Dorigo, 1998 | Bilgisayar ağlarında **dinamik yönlendirme (routing)** |
 
+### Çeşitlerin Formülleri (AS'den farkları)
+
+**Elitist AS** — en iyi tura ($T^{bs}$, *best-so-far*) $e$ kat ekstra feromon:
+
+$$
+\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij} + \sum_{k}\Delta\tau_{ij}^{k} + e\cdot\Delta\tau_{ij}^{bs}, \qquad \Delta\tau_{ij}^{bs} = \frac{Q}{L_{bs}}\ \ ((i,j) \in T^{bs}\text{ ise})
+$$
+
+**Ant Colony System (ACS)** — üç fark:
+
+**① Sözde-rastgele orantılı kural** (*pseudo-random proportional rule*): $q \in [0,1]$ rastgele sayı çekilir.
+
+$$
+j = \begin{cases} \arg\max_{l \in N_i^k} \lbrace \tau_{il}\,\eta_{il}^{\beta} \rbrace & q \le q_0 \quad \text{(sömürü: en iyi kenarı doğrudan seç)}\\ \text{AS olasılık kuralı } p_{ij}^k & q > q_0 \quad \text{(keşif)} \end{cases}
+$$
+
+**② Yerel feromon güncelleme:** Karınca bir kenardan **geçer geçmez** o kenarın feromonunu **azaltır** (sonraki karıncalar başka yollar denesin):
+
+$$
+\tau_{ij} \leftarrow (1-\xi)\,\tau_{ij} + \xi\,\tau_0 \qquad (\xi \approx 0.1)
+$$
+
+**③ Global güncelleme:** İterasyon sonunda **sadece en iyi tur** güncellenir: $\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij} + \rho\,\Delta\tau_{ij}^{bs}$, $\ \Delta\tau_{ij}^{bs} = 1/L_{bs}$
+
+**MAX-MIN AS (MMAS)** — sadece en iyi karınca bırakır ve sonuç sınırlandırılır:
+
+$$
+\tau_{ij} \leftarrow \Big[(1-\rho)\,\tau_{ij} + \Delta\tau_{ij}^{best}\Big]_{\tau_{min}}^{\tau_{max}}
+$$
+
+(Başlangıçta tüm kenarlar $\tau_{max}$'a ayarlanır → ilk iterasyonlarda geniş keşif.)
+
 ## 1.10 Gerçek Dünya Uygulama Alanları
 
 | Alan | Örnek |
@@ -370,6 +405,29 @@ $$
 | **γ → ∞** | Çekicilik hemen sıfırlanır, kimse kimseyi görmez → **rastgele arama** |
 | **γ orta** | Ateşböcekleri **alt gruplara ayrılır**, her grup bir tepeye toplanır → çok tepeli problemlerde güçlü |
 
+> 📝 Bazı kaynaklarda üstel fonksiyon yerine hesaplaması daha hızlı olan $\beta(r) = \dfrac{\beta_0}{1 + \gamma r^2}$ kullanılır. Davranış aynıdır: mesafe arttıkça çekicilik azalır.
+
+### ✍️ Elle Çözülmüş Örnek (Bir Hareket Adımı)
+
+**Problem:** $f(x, y) = -(x^2 + y^2)$ fonksiyonunu **maksimize** et (optimum: (0, 0), değeri 0). Parlaklık $I = f$.
+**Parametreler:** $\beta_0 = 1,\ \gamma = 0.1,\ \alpha = 0.2$, rastgele vektör $\epsilon = (0.1,\ -0.3)$
+
+| Ateşböceği | Konum | Parlaklık $f$ |
+|---|---|---|
+| $i$ | (4, 2) | −(16 + 4) = **−20** (sönük) |
+| $j$ | (1, 1) | −(1 + 1) = **−2** (parlak) |
+
+$I_j > I_i$ olduğundan **$i$, $j$'ye doğru hareket eder:**
+
+1. **Mesafe:** $r_{ij}^2 = (4-1)^2 + (2-1)^2 = 9 + 1 = \mathbf{10}$
+2. **Çekicilik:** $\beta = 1 \cdot e^{-0.1 \times 10} = e^{-1} = \mathbf{0.368}$
+3. **Çekim terimi:** $0.368 \times \big((1, 1) - (4, 2)\big) = 0.368 \times (-3,\ -1) = (\mathbf{-1.104},\ \mathbf{-0.368})$
+4. **Rastgelelik terimi:** $0.2 \times (0.1,\ -0.3) = (\mathbf{0.02},\ \mathbf{-0.06})$
+5. **Yeni konum:** $(4 - 1.104 + 0.02,\ \ 2 - 0.368 - 0.06) = (\mathbf{2.916},\ \mathbf{1.572})$
+6. **Yeni parlaklık:** $-(2.916^2 + 1.572^2) = -(8.50 + 2.47) \approx \mathbf{-10.98}$ ✅ (−20'den −10.98'e → **daha parlak**, optimuma yaklaştı)
+
+> 💡 γ = 0 olsaydı β = 1 olurdu ve $i$ doğrudan $j$'nin üstüne (1, 1)'e atlardı (+ rastgele adım). γ büyüdükçe uzaktaki ateşböceği daha az çekilir.
+
 ## 2.5 Algoritma Adımları
 
 ```text
@@ -485,6 +543,8 @@ $$
 | Uygun olduğu durum | İzleme, planlama, konfigürasyon, kontrol; olası sonuç sayısı çok | **Teşhis**; olası sonuç sayısı az, kontrol edilecek hipotez belli |
 | Klasik örnek | **XCON** | **MYCIN** |
 
+> ➡️ Adım adım çözülmüş ileri/geri zincirleme örneği, çakışma çözümü, güven faktörü hesabı ve diğer çıkarım yöntemleri için **[Bölüm 4](#4-yapay-zekâda-çıkarım-inference-nasıl-yapılır)**'e bak.
+
 ## 3.6 Belirsizlikle Başa Çıkma
 
 Gerçek dünyada bilgi kesin değildir ("muhtemelen grip"). Uzman sistemlerin yöntemleri:
@@ -503,6 +563,17 @@ Gerçek dünyada bilgi kesin değildir ("muhtemelen grip"). Uzman sistemlerin y�
 | Uzman olmayan kişiye uzman desteği sağlar, maliyeti düşürür | **Sağduyu** (common sense) yoktur |
 | Aynı anda birçok yerde kullanılabilir | Kural sayısı artınca bakım zorlaşır, kurallar çelişebilir |
 
+### Uzman Sistem Geliştirme Aşamaları (Yaşam Döngüsü)
+
+1. **Problemin tanımlanması** — Problem uzman sistemle çözülmeye uygun mu? (Dar alan, uzman var, kurallarla ifade edilebiliyor mu?)
+2. **Bilgi edinme** (*knowledge acquisition*) — Bilgi mühendisi uzmanla görüşme, gözlem, vaka inceleme yapar → **en zor ve en uzun aşama** (darboğaz)
+3. **Bilgi gösterimi** — Bilgi kurallara / çerçevelere dökülür
+4. **Prototip geliştirme** — Bir **kabuk** (CLIPS, Jess vb.) ile ilk sürüm
+5. **Doğrulama ve test** — Sistemin kararları uzmanın kararlarıyla karşılaştırılır
+6. **Kullanıma alma ve bakım** — Yeni bilgi geldikçe kurallar güncellenir
+
+**Uzman sistem uygun mu? Kontrol listesi:** Alan **dar ve iyi tanımlı** · Gerçek bir **uzman** var ve işbirliği yapıyor · Bilgi **kurallarla** ifade edilebiliyor · Problem ne çok kolay (birkaç dakikalık iş) ne çok zor (yıllar süren sezgi) · Uzmanlık **pahalı veya kıt**.
+
 ## 3.8 🆚 Uzman Sistem — Makine Öğrenmesi — İnsan Uzman
 
 | | **Uzman Sistem** | **Makine Öğrenmesi** | **İnsan Uzman** |
@@ -514,13 +585,258 @@ Gerçek dünyada bilgi kesin değildir ("muhtemelen grip"). Uzman sistemlerin y�
 | Yeni duruma uyum | Zayıf | İyi (veri varsa) | Çok iyi |
 | Yorgunluk / tutarsızlık | Yok | Yok | Var |
 
-> 💡 Günümüzde ikisi birleşiyor: **hibrit sistemler** (ML ile tahmin + kural tabanlı kontrol), ayrıca LLM tabanlı **ajanlar** uzman sistemlerin yerini alıyor (bkz. Bölüm 4).
+> 💡 Günümüzde ikisi birleşiyor: **hibrit sistemler** (ML ile tahmin + kural tabanlı kontrol), ayrıca LLM tabanlı **ajanlar** uzman sistemlerin yerini alıyor (bkz. Bölüm 5).
 
 ---
 
-# 4. Agentic AI (Ajan Tabanlı Yapay Zekâ)
+# 4. Yapay Zekâda Çıkarım (Inference) Nasıl Yapılır?
 
-## 4.1 Önce Temel Kavram: "Ajan" (Agent) Nedir?
+> **Çıkarım (inference)** = Elimizdeki bilgiden (olgular, kurallar, veriler, olasılıklar) **açıkça yazılmamış yeni bilgiyi / sonucu üretme** işlemidir. Uzman sistemin "beyni" olan **çıkarım motoru** bunu yapar; ama çıkarım sadece uzman sistemlere özgü değildir — olasılıksal modeller, bulanık sistemler, sinir ağları ve LLM'ler de farklı yollarla çıkarım yapar.
+
+Bu bölümün özeti tek tabloda:
+
+| Yaklaşım | Bilgi nasıl tutulur? | Çıkarım nasıl yapılır? | Örnek |
+|---|---|---|---|
+| **Mantıksal (sembolik)** | Önermeler, EĞER–İSE kuralları | **Modus Ponens**, **çözünürlük (resolution)**, **ileri / geri zincirleme** | Uzman sistemler, Prolog |
+| **Belirsiz – Güven faktörü** | Kural + güven derecesi (CF) | CF'leri **birleştirme formülleri** | MYCIN |
+| **Olasılıksal** | Olasılıklar, koşullu olasılıklar | **Bayes teoremi**, Bayes ağları | Spam filtresi, tıbbi teşhis |
+| **Bulanık** | Üyelik fonksiyonları (0–1 arası) | **Bulanıklaştır → kural → birleştir → durulaştır** (Mamdani) | Klima, çamaşır makinesi, metro freni |
+| **Makine öğrenmesi** | Öğrenilmiş **ağırlıklar / model** | Yeni veriyi modelden geçirip **tahmin** üretmek (*forward pass*) | Görüntü tanıma, ChatGPT |
+| **Agentic AI / LLM** | Model + bellek + araçlar | **Düşün → eylem → gözlem** döngüsüyle çok adımlı akıl yürütme (ReAct, *chain-of-thought*) | Kodlama ajanları |
+
+## 4.1 Akıl Yürütme Türleri: Tümdengelim, Tümevarım, Abdüksiyon
+
+| Tür | Yön | Örnek | Kesin mi? | YZ'de nerede? |
+|---|---|---|---|---|
+| **Tümdengelim** (*deduction*) | **Genel kural → özel sonuç** | "Bütün insanlar ölümlüdür. Sokrates insandır. → Sokrates ölümlüdür." | ✅ Öncüller doğruysa sonuç **kesin** doğru | Uzman sistemler, mantık programlama (Prolog) |
+| **Tümevarım** (*induction*) | **Özel örnekler → genel kural** | "Gördüğüm 1000 kuğu beyaz → bütün kuğular beyazdır." | ❌ **Olası** (siyah kuğu çıkabilir!) | **Makine öğrenmesi** (örneklerden genelleme), karar ağaçları |
+| **Abdüksiyon / kaçırma** (*abduction*) | **Gözlem → en iyi açıklama** | "Çimen ıslak → muhtemelen yağmur yağdı." | ❌ Olası (fıskiye de açılmış olabilir) | **Teşhis** sistemleri (MYCIN), arıza tespiti |
+
+> 🎯 **Sınav cümlesi:** Uzman sistemler ağırlıklı olarak **tümdengelim**, makine öğrenmesi **tümevarım**, teşhis sistemleri ise **abdüksiyon** ile çalışır.
+
+## 4.2 Mantıksal Çıkarım Kuralları
+
+Önerme mantığında (p, q = önermeler; → "ise", ¬ "değil", ∧ "ve", ∨ "veya"):
+
+| Kural | Kalıp | Örnek |
+|---|---|---|
+| **Modus Ponens** (onaylama) ⭐ | $p \rightarrow q,\ \ p\ \ \vdash\ \ q$ | "Yağmur yağarsa yol ıslanır. Yağmur yağıyor." → **Yol ıslak.** |
+| **Modus Tollens** (reddetme) | $p \rightarrow q,\ \ \neg q\ \ \vdash\ \ \neg p$ | "Yağmur yağarsa yol ıslanır. Yol ıslak değil." → **Yağmur yağmıyor.** |
+| **Hipotetik kıyas** (zincir) | $p \rightarrow q,\ \ q \rightarrow r\ \ \vdash\ \ p \rightarrow r$ | ateş → enfeksiyon, enfeksiyon → antibiyotik ⇒ ateş → antibiyotik |
+| **Ayırıcı kıyas** | $p \lor q,\ \ \neg p\ \ \vdash\ \ q$ | "Ya grip ya alerji. Grip değil." → **Alerji.** |
+| **VE-eleme** | $p \land q\ \ \vdash\ \ p$ | "Ateş var ve öksürük var." → Ateş var. |
+| **Çözünürlük** (*Resolution*, Robinson 1965) | $p \lor q,\ \ \neg q \lor r\ \ \vdash\ \ p \lor r$ | Prolog ve otomatik teorem ispatlayıcıların temeli; **çelişki ile ispat** yapar |
+
+> ⚠️ **Yaygın mantık hataları (sınavda tuzak olarak sorulur):**
+> - **Sonucu onaylama:** $p \rightarrow q,\ q \vdash p$ ❌ — "Yol ıslak, demek ki yağmur yağdı" (fıskiye olabilir). *Dikkat: abdüksiyon tam olarak budur — bu yüzden kesin değil, olasıdır.*
+> - **Öncülü reddetme:** $p \rightarrow q,\ \neg p \vdash \neg q$ ❌
+
+**Yüklem mantığı ve birleştirme (unification):** Değişkenli kurallarda çıkarım motoru değişkenleri olgularla **eşleştirir**:
+
+```prolog
+ebeveyn(ali, ayse).          % olgu
+ebeveyn(ayse, can).          % olgu
+dede(X, Z) :- ebeveyn(X, Y), ebeveyn(Y, Z).   % kural: X, Z'nin dedesi/ninesidir
+?- dede(ali, Kim).           % sorgu → X=ali, Y=ayse (birleştirme), Z=can  ⇒  Kim = can
+```
+
+## 4.3 ✍️ İleri Zincirleme — Adım Adım Örnek (Hayvan Tanıma)
+
+**Bilgi tabanı (kurallar):**
+
+| Kural | EĞER | İSE |
+|---|---|---|
+| **R1** | tüyü var | kuş |
+| **R2** | kılı var | memeli |
+| **R3** | memeli VE et yer | etobur |
+| **R4** | etobur VE sarımsı-kahve VE koyu benekli | **çita** |
+| **R5** | etobur VE sarımsı-kahve VE siyah çizgili | **kaplan** |
+
+**Başlangıç olguları (çalışma belleği):** kılı var, et yer, sarımsı-kahve, koyu benekli
+
+**İleri zincirleme döngüsü:** *Eşleştir → (çakışma varsa) seç → tetikle (yeni olguyu ekle) → tekrarla*
+
+| Döngü | Koşulu sağlanan kurallar (**çakışma kümesi**) | Tetiklenen | Çalışma belleğine eklenen |
+|---|---|---|---|
+| 1 | R2 | R2 | **memeli** |
+| 2 | R3 (R2 zaten tetiklendi → tekrar tetiklenmez) | R3 | **etobur** |
+| 3 | R4 (R5 sağlanmaz: *siyah çizgili* yok) | R4 | **çita** ✅ |
+| 4 | Yeni kural yok | — | **DUR** |
+
+> **Sonuç: çita.** Sistem hiçbir hedef verilmeden, **veriden** başlayıp ulaşabildiği her şeyi çıkardı → **veri güdümlü**.
+
+## 4.4 ✍️ Geri Zincirleme — Aynı Bilgi Tabanıyla
+
+**Hedef: "Bu hayvan kaplan mı?"** Çıkarım motoru hedefi bir **yığına (stack)** koyar ve onu kanıtlayabilecek kuralı arar:
+
+```text
+HEDEF: kaplan?
+ └─ R5 sonucu kaplan → koşullarını kanıtla:
+     ├─ etobur?  → R3 → koşulları:
+     │     ├─ memeli? → R2 → kılı var? → çalışma belleğinde ✔  ⇒ memeli ✔
+     │     └─ et yer? → çalışma belleğinde ✔                     ⇒ etobur ✔
+     ├─ sarımsı-kahve? → ✔
+     └─ siyah çizgili? → bellekte yok, onu üreten kural da yok → KULLANICIYA SOR → "Hayır" ✘
+ ⇒ R5 başarısız → "kaplan" KANITLANAMADI.  Sıradaki hipotez: çita?
+HEDEF: çita?
+ └─ R4 → etobur ✔ (zaten biliniyor) · sarımsı-kahve ✔ · koyu benekli ✔  ⇒  ÇİTA ✔
+```
+
+> 💡 Geri zincirleme **sadece hedefle ilgili kuralları** inceler (R1'e hiç bakmadı) ve eksik bilgiyi **kullanıcıya sorar** → teşhiste verimli (MYCIN). "NEDEN bu soruyu soruyorsun?" sorusunun cevabı da bu yığındır: *"Çünkü kaplan olup olmadığını kanıtlamaya çalışıyorum (R5)."*
+
+## 4.5 Çakışma Çözümü (Conflict Resolution)
+
+Aynı anda **birden fazla kural** tetiklenebilir durumdaysa (çakışma kümesi) hangisi önce çalışacak?
+
+| Strateji | Kural |
+|---|---|
+| **Refraksiyon** (*refraction*) | Aynı kural aynı olgularla **ikinci kez tetiklenmez** (sonsuz döngüyü önler) |
+| **Yenilik** (*recency*) | **En yeni eklenen olguyu** kullanan kural önce çalışır |
+| **Özgüllük** (*specificity*) | **Daha çok koşulu olan** (daha özel) kural önce çalışır — "kuş uçar" yerine "penguen uçamaz" |
+| **Öncelik** (*salience / priority*) | Kurallara elle **öncelik puanı** verilir (CLIPS'te `salience`) |
+| **Sıra** | Bilgi tabanında **ilk yazılan** kural (Prolog böyle çalışır) |
+
+> **Rete algoritması** (*Charles Forgy, 1979*): Binlerce kural varken her döngüde tüm kuralları tek tek kontrol etmek yavaştır. Rete, kuralların koşullarını bir ağda saklayıp **sadece değişen olguları** yeniden eşleştirir → CLIPS, Drools gibi kural motorlarının temeli.
+
+## 4.6 Belirsizlik Altında Çıkarım
+
+Gerçek dünyada olgular ve kurallar **%100 kesin değildir**. Üç klasik yöntem:
+
+### (a) MYCIN Güven Faktörü (Certainty Factor) — ✍️ Hesaplamalı
+
+CF ∈ [−1, +1]: +1 kesin doğru, 0 bilinmiyor, −1 kesin yanlış.
+
+| Durum | Formül |
+|---|---|
+| Koşul **VE** ile bağlıysa | $CF(A \land B) = \min(CF_A, CF_B)$ |
+| Koşul **VEYA** ile bağlıysa | $CF(A \lor B) = \max(CF_A, CF_B)$ |
+| Kuralın sonucu | $CF(\text{sonuç}) = CF(\text{koşul}) \times CF(\text{kural})$ |
+| İki kural **aynı sonucu** destekliyorsa (ikisi de +) | $CF = CF_1 + CF_2\,(1 - CF_1)$ |
+| İkisi de − | $CF = CF_1 + CF_2\,(1 + CF_1)$ |
+| Biri +, biri − | $CF = \dfrac{CF_1 + CF_2}{1 - \min(\lvert CF_1\rvert, \lvert CF_2\rvert)}$ |
+
+**Örnek:** Olgular: ateş (CF 0.9), öksürük (CF 0.6), kas ağrısı (CF 0.8), hasta aşılı (CF 1.0)
+
+- **R1:** EĞER ateş VE öksürük İSE grip (CF 0.7) → $\min(0.9, 0.6) \times 0.7 = 0.6 \times 0.7 = \mathbf{0.42}$
+- **R2:** EĞER kas ağrısı İSE grip (CF 0.5) → $0.8 \times 0.5 = \mathbf{0.40}$
+- **R1 + R2 birleşimi:** $0.42 + 0.40\,(1 - 0.42) = 0.42 + 0.232 = \mathbf{0.652}$ → iki bağımsız kanıt güveni **artırdı**
+- **R3:** EĞER aşılı İSE grip (CF −0.4) → $1.0 \times (-0.4) = -0.4$
+- **Son birleşim:** $\dfrac{0.652 + (-0.4)}{1 - \min(0.652,\ 0.4)} = \dfrac{0.252}{0.6} = \mathbf{0.42}$ → karşı kanıt güveni **düşürdü**
+
+> **Sonuç:** "Hasta muhtemelen grip (CF = 0.42)."
+
+### (b) Bayes Teoremi — ✍️ Hesaplamalı
+
+$$
+P(H \mid E) = \frac{P(E \mid H)\cdot P(H)}{P(E)}, \qquad P(E) = P(E\mid H)P(H) + P(E\mid \neg H)P(\neg H)
+$$
+
+$P(H)$: **önsel** (*prior*) olasılık — kanıttan önceki inanç · $P(E\mid H)$: **olabilirlik** (*likelihood*) · $P(H\mid E)$: **sonsal** (*posterior*) olasılık — kanıttan sonraki güncellenmiş inanç
+
+**Örnek (klasik sınav sorusu):** Bir hastalık toplumda **%1**. Test hastaların **%90**'ını yakalıyor (duyarlılık), sağlamların **%5**'ine yanlışlıkla pozitif diyor (FPR). Testi pozitif çıkan biri gerçekten hasta mı?
+
+$$
+P(H\mid +) = \frac{0.90 \times 0.01}{0.90 \times 0.01 + 0.05 \times 0.99} = \frac{0.009}{0.009 + 0.0495} = \frac{0.009}{0.0585} \approx \mathbf{0.154}
+$$
+
+**Sezgisel kontrol — 10.000 kişi düşün:**
+
+| | Test + | Test − | Toplam |
+|---|---|---|---|
+| **Hasta** | 90 | 10 | 100 |
+| **Sağlam** | 495 | 9405 | 9900 |
+
+Pozitif çıkan 585 kişiden sadece **90**'ı hasta → 90/585 ≈ **%15.4**. 😮 Hastalık nadir olduğu için yanlış alarmlar gerçek pozitifleri boğuyor (*taban oranı yanılgısı / base rate fallacy*).
+
+> 🔁 **Kanıt eklendikçe inanç güncellenir:** Aynı kişi ikinci (bağımsız) testten de pozitif çıkarsa yeni önsel 0.154 olur → $P = \frac{0.9 \times 0.154}{0.9 \times 0.154 + 0.05 \times 0.846} \approx \mathbf{0.77}$. Bu, **Bayesçi çıkarımın** özüdür.
+
+**Bayes ağları** (*Judea Pearl, 1980'ler*): Değişkenler düğüm, nedensel ilişkiler ok olan bir graf; her düğümde koşullu olasılık tablosu bulunur. Örn. *Yağmur → Islak çimen ← Fıskiye*. "Çimen ıslak" gözlenince yağmur ve fıskiye olasılıkları güncellenir — **abdüksiyonun olasılıksal hâli**. (Bkz. Naive Bayes sınıflandırıcı, Bölüm 6.5)
+
+### (c) Bulanık Mantık Çıkarımı (Mamdani) — ✍️ Hesaplamalı
+
+**Bulanık mantık** (*Lotfi Zadeh, 1965*): Bir değer bir kümeye **0 ile 1 arasında bir dereceyle** üye olabilir. 28 °C "sıcak" mı? Klasik mantık: evet/hayır. Bulanık mantık: **0.3 sıcak, 0.7 ılık.** **Mamdani** (1975) çıkarımı 4 adımdır:
+
+![Bulanık çıkarım](images/bulanik_cikarim.png)
+
+**Problem:** Klimada fan hızını belirle. Girdi: **Sıcaklık = 28 °C**, **Nem = %60**.
+
+**① Bulanıklaştırma (fuzzification):** Keskin girdiyi üyelik derecelerine çevir (grafikten):
+μ(Soğuk) = 0, μ(Ilık) = **0.7**, μ(Sıcak) = **0.3** · μ(Normal nem) = **0.5**, μ(Yüksek nem) = **0.4**
+
+**② Kural değerlendirme:** **VE → min**, **VEYA → max**
+
+| Kural | Hesap | Ateşleme gücü |
+|---|---|---|
+| R1: EĞER sıcaklık **Soğuk** İSE fan **Yavaş** | μ(Soğuk) | **0** (tetiklenmez) |
+| R2: EĞER sıcaklık **Ilık** VE nem **Normal** İSE fan **Orta** | min(0.7, 0.5) | **0.5** |
+| R3: EĞER sıcaklık **Sıcak** VEYA nem **Yüksek** İSE fan **Hızlı** | max(0.3, 0.4) | **0.4** |
+
+**③ Birleştirme (aggregation):** Her kuralın çıktı kümesi ateşleme gücünde **kesilir** (Orta 0.5'te, Hızlı 0.4'te) ve kümeler **max** ile tek şekilde birleştirilir (grafikte mavi alan).
+
+**④ Durulaştırma (defuzzification):** Bulanık şekli tek bir sayıya çevir. En yaygın yöntem **ağırlık merkezi** (*centroid*):
+
+$$
+z^* = \frac{\int \mu(z)\, z\, dz}{\int \mu(z)\, dz} \approx \mathbf{\%61.5}\ \text{fan hızı}
+$$
+
+> 💡 Elle hızlı yaklaşım (sınavda integral istenmezse): kümelerin tepe noktalarının **ağırlıklı ortalaması** → $\frac{0.5 \cdot 50 + 0.4 \cdot 100}{0.5 + 0.4} \approx 72.2$. (Bu, **Sugeno** tipi çıkarıma benzer; Sugeno'da kural çıktıları küme değil **sabit sayı/fonksiyondur**, durulaştırma ağırlıklı ortalamadır.)
+
+| Klasik (keskin) mantık | Bulanık mantık |
+|---|---|
+| Değer 0 ya da 1 | Değer [0, 1] aralığında |
+| "28 °C sıcaktır" ya doğru ya yanlış | "28 °C, 0.3 derecede sıcaktır" |
+| Kurallar ya çalışır ya çalışmaz | Kurallar **kısmen** çalışır, çıktılar **harmanlanır** |
+| Eşikte ani sıçrama (24.9 → fan kapalı, 25.0 → tam açık) | **Yumuşak** geçiş |
+
+## 4.7 Makine Öğrenmesinde "Çıkarım": Eğitim vs Çıkarım
+
+ML'de **çıkarım (inference)** kelimesi farklı anlamda kullanılır:
+
+| | **Eğitim (training)** | **Çıkarım (inference)** |
+|---|---|---|
+| Ne olur? | Model veriden **öğrenir**, ağırlıklar güncellenir | Eğitilmiş model **yeni veri için tahmin** üretir, ağırlıklar **sabit** |
+| Akış | İleri geçiş + **geri yayılım** (backprop) | Sadece **ileri geçiş** (*forward pass*) |
+| Ne sıklıkla? | Bir kez / ara ara (saatler–haftalar) | Her kullanımda (milisaniyeler) |
+| Örnek | Kedi–köpek fotoğraflarıyla ağı eğitmek | Telefonun yeni fotoğrafı "kedi" diye etiketlemesi |
+
+**LLM'lerde çıkarım:** Model, verilen metne göre **bir sonraki kelimenin (token) olasılıklarını** hesaplar, birini seçer, metne ekler ve tekrarlar (*otoregresif üretim*). Akıl yürütmeyi geliştirmek için:
+- **Chain-of-Thought** (düşünce zinciri): Cevaptan önce adım adım ara akıl yürütme yazdırmak
+- **ReAct**: Düşün → araç kullan → sonucu gözle → tekrar düşün (bkz. Bölüm 5.4)
+
+> 🔗 **Büyük resim:** Uzman sistem çıkarımı **açık kurallarla, adım adım ve açıklanabilir**; ML çıkarımı **öğrenilmiş ağırlıklarla, tek seferde ve kara kutu**. Agentic AI ikisini birleştirir: LLM'in esnek akıl yürütmesi + araçlar/kurallar ile doğrulama.
+
+## 4.8 Kısa Python Kodu: İleri Zincirleme Motoru
+
+```python
+kurallar = [
+    ({"tüyü var"}, "kuş"),
+    ({"kılı var"}, "memeli"),
+    ({"memeli", "et yer"}, "etobur"),
+    ({"etobur", "sarımsı-kahve", "koyu benekli"}, "çita"),
+    ({"etobur", "sarımsı-kahve", "siyah çizgili"}, "kaplan"),
+]
+
+def ileri_zincirleme(olgular):
+    olgular = set(olgular)
+    degisti = True
+    while degisti:                          # yeni olgu eklendikçe devam et
+        degisti = False
+        for kosullar, sonuc in kurallar:
+            if kosullar <= olgular and sonuc not in olgular:   # tüm koşullar sağlandı mı? (refraksiyon)
+                print(f"{' VE '.join(kosullar)}  →  {sonuc}")
+                olgular.add(sonuc)          # tetikle: çalışma belleğine ekle
+                degisti = True
+    return olgular
+
+ileri_zincirleme({"kılı var", "et yer", "sarımsı-kahve", "koyu benekli"})
+# kılı var → memeli · memeli VE et yer → etobur · ... → çita
+```
+
+---
+
+# 5. Agentic AI (Ajan Tabanlı Yapay Zekâ)
+
+## 5.1 Önce Temel Kavram: "Ajan" (Agent) Nedir?
 
 > **Ajan**, çevresini **algılayıcılar (sensörler)** ile algılayan ve çevresi üzerinde **eyleyiciler (aktüatörler)** ile eylemde bulunan her şeydir. *(Russell & Norvig, "Artificial Intelligence: A Modern Approach")*
 >
@@ -547,7 +863,22 @@ Bir ajan tasarlanırken **PEAS** ile tanımlanır (sınavda "bir ajanın PEAS'ı
 | **Fayda tabanlı ajan** | Birden çok yol varsa **en faydalısını** seçer | Otonom araç (hızlı + güvenli + ekonomik) |
 | **Öğrenen ajan** | Deneyimden **öğrenerek** kendini geliştirir | AlphaGo, AlphaStar (PDF) |
 
-## 4.2 Agentic AI Nedir?
+### Ortam (Environment) Özellikleri
+
+Ajanın ne kadar zor bir iş yaptığı **ortamın özelliklerine** bağlıdır (Russell & Norvig):
+
+| Özellik | Kolay uç | Zor uç | Satranç | Otonom taksi |
+|---|---|---|---|---|
+| **Gözlemlenebilirlik** | Tam gözlemlenebilir (her şeyi görür) | Kısmi gözlemlenebilir | Tam | **Kısmi** (köşedeki araç görünmez) |
+| **Belirlilik** | Deterministik (eylemin sonucu kesin) | Stokastik (rastgelelik var) | Deterministik | **Stokastik** |
+| **Bölümlülük** | Epizodik (her karar bağımsız) | Ardışık (karar geleceği etkiler) | Ardışık | Ardışık |
+| **Değişkenlik** | Statik (ajan düşünürken dünya durur) | Dinamik | Statik (süresiz) | **Dinamik** |
+| **Süreklilik** | Ayrık (sınırlı durum/eylem) | Sürekli | Ayrık | **Sürekli** |
+| **Ajan sayısı** | Tek ajan | Çoklu ajan | Çoklu (rakip) | Çoklu |
+
+> 🎯 Gerçek dünya (ve Agentic AI'nin çalıştığı ortamlar) neredeyse her zaman **kısmi gözlemlenebilir, stokastik, ardışık, dinamik ve çoklu ajanlı**dır → en zor durum. Bu yüzden ajanın **bellek, planlama ve yeniden planlama** yeteneklerine ihtiyacı vardır.
+
+## 5.2 Agentic AI Nedir?
 
 > **Agentic AI**, kendisine verilen bir **hedefe** ulaşmak için **otonom olarak** planlayan, karar veren, **araçlar kullanarak gerçek dünyada eylem yapan**, sonuçları gözlemleyip planını **güncelleyen** yapay zekâ sistemleridir. Genelde "beyin" olarak bir **büyük dil modeli (LLM)** kullanır.
 
@@ -564,7 +895,7 @@ Bir ajan tasarlanırken **PEAS** ile tanımlanır (sınavda "bir ajanın PEAS'ı
 
 **YZ'nin evrimi:** Kural tabanlı (uzman sistemler) → Makine öğrenmesi → Derin öğrenme → Üretken YZ (LLM) → **Agentic AI**
 
-## 4.3 Agentic AI'nin Bileşenleri
+## 5.3 Agentic AI'nin Bileşenleri
 
 | Bileşen | Görevi |
 |---|---|
@@ -575,13 +906,30 @@ Bir ajan tasarlanırken **PEAS** ile tanımlanır (sınavda "bir ajanın PEAS'ı
 | 🔍 **Yansıtma** (*reflection*) | Kendi çıktısını değerlendirir, hatayı fark edip düzeltir |
 | 👤 **İnsan denetimi** (*human-in-the-loop*) | Ödeme, silme gibi kritik adımlarda insan onayı |
 
-## 4.4 Çalışma Mantığı: Algıla → Düşün → Eylem → Gözlemle → Öğren
+## 5.4 Çalışma Mantığı: Algıla → Düşün → Eylem → Gözlemle → Öğren
 
 ![Agentic AI döngüsü](images/agentic_dongu.png)
 
 Bu döngü, PDF'teki "YZ'nin temel çalışma prensipleri" ile örtüşür: **veri toplama (algılama) → model/algoritma (düşünme) → tahmin ve karar verme (eylem) → hata düzeltme ve geliştirme (geri bildirim) → bağlam ve adaptasyon.** Bu yaklaşıma **ReAct** (*Reason + Act*: düşün ve eyle) de denir.
 
-## 4.5 🌍 Dış Dünya Problemlerinde Nasıl Uygulanır? — Adım Adım Örnek
+**ReAct izi — ajanın kafasından geçenler** (görev: *"Yarın Ankara'da yağmur yağacaksa toplantıyı online yap"*):
+
+```text
+Düşünce 1 : Önce yarının hava durumunu öğrenmeliyim.
+Eylem 1   : hava_durumu(şehir="Ankara", tarih="yarın")
+Gözlem 1  : {"yağış_olasılığı": %80}
+Düşünce 2 : %80 yüksek → toplantı online olmalı. Takvimdeki toplantıyı bulmalıyım.
+Eylem 2   : takvim_ara(tarih="yarın", anahtar="toplantı")
+Gözlem 2  : {"id": 42, "başlık": "Proje toplantısı", "yer": "B-204"}
+Düşünce 3 : Yeri video bağlantısıyla değiştirip katılımcılara bildirmeliyim.
+Eylem 3   : takvim_guncelle(id=42, yer="online", link=yeni_toplanti_linki())
+Gözlem 3  : {"durum": "güncellendi", "bildirim": 6 kişiye gönderildi}
+Cevap     : Yarın %80 yağmur bekleniyor; toplantı online'a alındı, 6 katılımcı bilgilendirildi.
+```
+
+> Her **Gözlem** bir sonraki **Düşünce**'yi değiştirir — sabit bir senaryo değil, **duruma göre yeniden planlama** vardır. Bu, uzman sistemdeki sabit kural zincirinden farkıdır.
+
+## 5.5 🌍 Dış Dünya Problemlerinde Nasıl Uygulanır? — Adım Adım Örnek
 
 **Senaryo:** Bir e-ticaret şirketinin müşteri hizmetleri ajanı. Müşteri yazıyor: *"Siparişim 1 haftadır gelmedi!"*
 
@@ -610,7 +958,7 @@ Bu döngü, PDF'teki "YZ'nin temel çalışma prensipleri" ile örtüşür: **ve
 | 🎓 **Eğitim** | Öğrencinin hatalarını analiz edip kişisel çalışma planı oluşturur ve takip eder |
 | 🚗 **Otonom araçlar** | Klasik ajan örneği: sensörlerle algılar, rota planlar, direksiyon/fren ile eylem yapar |
 
-## 4.6 Çoklu Ajan Sistemleri (Multi-Agent Systems)
+## 5.6 Çoklu Ajan Sistemleri (Multi-Agent Systems)
 
 Karmaşık işlerde **tek ajan yerine uzmanlaşmış birden fazla ajan** birlikte çalışır. Bir **orkestratör ajan** işi böler ve dağıtır:
 
@@ -618,7 +966,7 @@ Karmaşık işlerde **tek ajan yerine uzmanlaşmış birden fazla ajan** birlikt
 
 > 🔗 **Bağlantı:** Bu örnekteki *rota planlama ajanı* rotayı **Karınca Kolonisi Optimizasyonu** ile, *talep tahmin ajanı* ise **makine öğrenmesi** ile hesaplayabilir. Ayrıca ACO'daki her karınca da aslında **basit bir ajandır** — çok sayıda basit ajanın etkileşiminden zekâ doğması (**sürü zekâsı**) çoklu ajan sistemlerinin doğadaki örneğidir.
 
-## 4.7 Riskler ve Önlemler
+## 5.7 Riskler ve Önlemler
 
 | Risk | Açıklama | Önlem |
 |---|---|---|
@@ -628,11 +976,37 @@ Karmaşık işlerde **tek ajan yerine uzmanlaşmış birden fazla ajan** birlikt
 | **Kontrol kaybı** | Uzun otonom zincirlerde hataların birikmesi | Adım sınırları, izleme, geri alma imkânı |
 | **Gizlilik** | Kişisel verilere erişim | Veri minimizasyonu, şifreleme |
 
+## 5.8 Agentic Tasarım Desenleri ve Güncel Kavramlar
+
+**Dört temel agentic desen** (Andrew Ng'nin sınıflandırması):
+
+| Desen | Ne yapar? | Örnek |
+|---|---|---|
+| **Yansıtma** (*Reflection*) | Ajan kendi çıktısını eleştirir ve düzeltir | Yazdığı kodu test edip hatayı kendisi düzeltir |
+| **Araç kullanımı** (*Tool use*) | Dış araçları çağırır | Web araması, hesap makinesi, veritabanı, API |
+| **Planlama** (*Planning*) | Hedefi alt görevlere böler, sıralar | "Rapor hazırla" → veri topla → analiz et → grafik çiz → yaz |
+| **Çoklu ajan işbirliği** (*Multi-agent*) | Uzman ajanlar rol paylaşır | Yazar ajan + eleştirmen ajan + test ajanı |
+
+**Otonomi seviyeleri** (insan ne kadar müdahil?):
+
+| Seviye | Açıklama |
+|---|---|
+| **Human-in-the-loop** | Her kritik adımda **insan onayı** gerekir |
+| **Human-on-the-loop** | Ajan kendi çalışır, insan **izler** ve gerekirse durdurur |
+| **Tam otonom** | İnsan müdahalesi yok — sadece düşük riskli işler için uygun |
+
+**Güncel kavramlar:**
+- **RAG** (*Retrieval-Augmented Generation*): LLM cevap vermeden önce ilgili belgeleri bir bilgi kaynağından **arayıp bulur** ve cevabı bunlara dayandırır → halüsinasyonu azaltır, güncel/özel bilgiye erişim sağlar.
+- **MCP** (*Model Context Protocol*, Anthropic, 2024): Ajanların araçlara ve veri kaynaklarına **standart bir yolla** bağlanmasını sağlayan açık protokol ("ajanlar için USB-C").
+- **Bellek türleri:** Kısa süreli (bağlam penceresi) · Uzun süreli (vektör veritabanı, kullanıcı tercihleri) · Epizodik (geçmiş görevlerden deneyim)
+
+> 🆚 **Uzman Sistem ↔ Agentic AI:** İkisi de "akıllı karar veren program" ama uzman sistem **sabit, elle yazılmış kurallarla** dar bir alanda çalışır ve öğrenmez; Agentic AI **LLM ile esnek akıl yürütür**, araç kullanır, belleği vardır ve geniş alanlarda çalışır — buna karşılık açıklanabilirliği ve güvenilirliği daha düşüktür.
+
 ---
 
-# 5. Makine Öğrenmesi Algoritmaları ve Değerlendirme Ölçütleri
+# 6. Makine Öğrenmesi Algoritmaları ve Değerlendirme Ölçütleri
 
-## 5.1 Makine Öğrenmesi Nedir? (PDF 2)
+## 6.1 Makine Öğrenmesi Nedir? (PDF 2)
 
 - Çok büyük miktardaki verinin **elle işlenmesi ve analizi mümkün değildir.**
 - **Amaç:** Geçmişteki verileri kullanarak **gelecek için tahminde bulunmak.**
@@ -648,7 +1022,7 @@ Karmaşık işlerde **tek ajan yerine uzmanlaşmış birden fazla ajan** birlikt
 | **Denetimsiz (eğiticisiz)** *(unsupervised)* | **Etiketsiz** | Gizli yapıyı / grupları keşfet | Müşteri segmentasyonu, K-means |
 | **Pekiştirmeli** *(reinforcement)* | Ödül / ceza | Deneme-yanılma ile en iyi davranışı öğren | AlphaGo, robotlar, AlphaStar |
 
-## 5.2 Problem (Metot) Türleri
+## 6.2 Problem (Metot) Türleri
 
 ![ML problem türleri](images/ml_problem_turleri.png)
 
@@ -659,7 +1033,7 @@ Karmaşık işlerde **tek ajan yerine uzmanlaşmış birden fazla ajan** birlikt
 | **Regresyon (eğri uydurma)** | Sınıf yerine **sürekli** bir değerin tahmini; giriş–çıkış arasındaki fonksiyonun eğrisi bulunur | Hava sıcaklığından deniz suyu sıcaklığını tahmin |
 | **Birliktelik kuralları** | Birlikte görülen olayları bulmak | **Sepet analizi**: x alan müşterilerin %80'i y'yi de alıyorsa, x alıp y almayanlar y'nin potansiyel müşterisidir |
 
-## 5.3 Verilerin Sayısallaştırılması
+## 6.3 Verilerin Sayısallaştırılması
 
 ML yöntemlerinin çoğunda veri önce **sayıya çevrilir:**
 
@@ -672,7 +1046,7 @@ ML yöntemlerinin çoğunda veri önce **sayıya çevrilir:**
 
 **PDF örneği:** 10 satır × 6 sütunluk "2" rakamı resmi → 60 uzunluğunda 0/1 vektörü → **60 özellik**. 10 rakam × 10 font = **100 örnek × 60 boyutlu matris**. Bu matris **eğitim** ve **test** kümesine ayrılır; model eğitim kümesiyle kurulur, başarısı **daha önce hiç görmediği** test kümesinde ölçülür.
 
-## 5.4 Özellik Seçimi ve Özellik Çıkarımı
+## 6.4 Özellik Seçimi ve Özellik Çıkarımı
 
 Özellik çok fazlaysa (ör. DNA'da 5000 özellik) bazıları sınıflandırmada işe yaramaz. İki çözüm:
 
@@ -726,7 +1100,7 @@ $$
 
 > Özdeğer = verinin o özvektöre izdüşümündeki **varyans**. En büyük özdeğerler seçilir.
 
-## 5.5 Sınıflandırma Algoritmaları
+## 6.5 Sınıflandırma Algoritmaları
 
 ![Karar sınırları](images/karar_sinirlari.png)
 
@@ -738,7 +1112,41 @@ $$
 | **Yapay Sinir Ağları** | Biyolojik nöronlardan esinlenmiş; $x = \sum W_iA_i + \theta$, $y = \frac{1}{1+e^{-x}}$. Tek nöron = **perceptron**; doğrusal olmayan sınırlar için **çok katmanlı perceptron**, **geri yayılım** (backpropagation) ile eğitilir | Çok güçlü; kara kutu, çok veri ister |
 | **K-En Yakın Komşu (KNN)** | **Eğitim yok** (örnek tabanlı / tembel). Yeni örneğe **en yakın K** örneğe bakılır, **çoğunluk** hangi sınıftaysa o seçilir. Uzaklık: Öklid $d = \sqrt{\sum (a_r(x_i) - a_r(x_j))^2}$ — *"Bana arkadaşını söyle, sana kim olduğunu söyleyeyim"* | Basit; test aşaması yavaş |
 | **LVQ** (Öğrenmeli Vektör Kuantalama) | Her sınıf için **betimleyici (prototip) vektörler** öğrenilir; test örneği **en yakın prototipin** sınıfına atanır | KNN'den hızlı |
-| **Naive Bayes, Random Forest, C4.5** | PDF'teki karşılaştırma tablosunda geçen diğer yöntemler | — |
+| **Naive Bayes** | **Bayes teoremi** + özelliklerin birbirinden **bağımsız** olduğu ("naif") varsayımı; en yüksek sonsal olasılıklı sınıf seçilir | Çok hızlı, az veriyle çalışır, metin/spam'de başarılı; bağımsızlık varsayımı genelde gerçekçi değil |
+| **Random Forest** | Verinin rastgele alt kümeleriyle **çok sayıda karar ağacı** eğitilir, **oylama** ile karar verilir | Aşırı öğrenmeye karşı dirençli, güçlü; tek ağaç kadar okunabilir değil |
+| **C4.5** | Quinlan'ın karar ağacı algoritması (ID3'ün gelişmiş hâli); **kazanç oranı** kullanır, sürekli değerleri ve eksik veriyi işler | — |
+| **Lojistik Regresyon** | Doğrusal birleşimi **sigmoid**'den geçirip **olasılık** verir: $P(y=1) = \frac{1}{1+e^{-(w \cdot x + b)}}$ | Adı "regresyon" ama **sınıflandırma** yapar! Tek nöronlu YSA ile aynı şeydir |
+
+### ✍️ KNN Elle Çözülmüş Örnek
+
+Eğitim verisi: A(1,1) 🔴 · B(2,4) 🔴 · F(0,3) 🔴 · C(4,1) 🔵 · D(5,5) 🔵 · E(3,5) 🔵 — **Yeni örnek: Q(3, 3)**
+
+| Nokta | Sınıf | Öklid uzaklığı Q'ya | Sıra |
+|---|---|---|---|
+| B (2,4) | 🔴 | $\sqrt{1 + 1} = 1.41$ | **1** |
+| E (3,5) | 🔵 | $\sqrt{0 + 4} = 2.00$ | **2** |
+| C (4,1) | 🔵 | $\sqrt{1 + 4} = 2.24$ | **3** |
+| A (1,1) | 🔴 | $\sqrt{4 + 4} = 2.83$ | 4 |
+| D (5,5) | 🔵 | $\sqrt{4 + 4} = 2.83$ | 5 |
+| F (0,3) | 🔴 | $\sqrt{9 + 0} = 3.00$ | 6 |
+
+- **K = 1:** en yakın B → **🔴 Kırmızı**
+- **K = 3:** B 🔴, E 🔵, C 🔵 → çoğunluk **🔵 Mavi**
+
+> ⚠️ **K değeri sonucu değiştirir!** Küçük K → gürültüye duyarlı (aşırı öğrenme), büyük K → sınırlar fazla düzleşir (eksik öğrenme). İkili sınıflandırmada beraberliği önlemek için **K tek sayı** seçilir. Özelliklerin ölçekleri farklıysa (yaş vs maaş) önce **normalizasyon** yapılmalıdır.
+
+### ✍️ Naive Bayes Elle Çözülmüş Örnek (PDF'teki piknik verisi)
+
+$$
+P(\text{sınıf} \mid x_1, \dots, x_n) \ \propto\ P(\text{sınıf}) \cdot \prod_{i} P(x_i \mid \text{sınıf})
+$$
+
+Yeni gün: **(güneşli, yüksek nem, güçlü rüzgar, soğuk su)** → pikniğe gidilir mi? (Tablo: Bölüm 6.4)
+
+- **Evet:** $P(E) = 3/4$; $P(\text{güneşli}|E) = 3/3$, $P(\text{yüksek}|E) = 2/3$, $P(\text{güçlü}|E) = 3/3$, $P(\text{soğuk}|E) = 1/3$ → $\frac34 \cdot 1 \cdot \frac23 \cdot 1 \cdot \frac13 = \mathbf{0.167}$
+- **Hayır:** $P(H) = 1/4$; $P(\text{güneşli}|H) = 0/1 = 0$ → çarpım = **0**
+
+✅ **Karar: Evet.** ⚠️ Ama dikkat: tek bir sıfır olasılık tüm çarpımı sıfırlar (**sıfır frekans problemi**). Çözüm: **Laplace düzeltmesi** — her sayıma 1 eklenir: $P(x_i|c) = \frac{\text{sayı}(x_i, c) + 1}{\text{sayı}(c) + k}$ ($k$: özelliğin alabileceği değer sayısı).
 
 ### "Neden bu kadar çok algoritma var?" (PDF)
 
@@ -755,7 +1163,7 @@ $$
 
 → Her veri kümesinde kazanan algoritma farklı!
 
-## 5.6 Kümeleme Algoritmaları
+## 6.6 Kümeleme Algoritmaları
 
 - **Eğiticisiz** öğrenmedir, sınıf bilgisi kullanılmaz.
 - Veriyi en iyi **temsil eden vektörleri** (küme merkezleri) bulur → veriler bu merkezlerle kodlanabilir → **sıkıştırma** algoritmalarının temelidir (renk kümeleme: 106.846 renk → 55 renk; kod kitabı / codebook).
@@ -775,7 +1183,7 @@ $$
 - K-means'te merkezler arasında ilişki yoktur; **SOM'da merkezler 1 veya 2 boyutlu bir dizide komşudur.**
 - K-means'te **sadece kazanan** merkez güncellenir; SOM'da kazanan nöronun **komşuları da** güncellenir (yakın komşu daha çok hareket eder).
 
-## 5.7 Model Doğrulama: Eğitim/Test, K-Fold, Aşırı Öğrenme
+## 6.7 Model Doğrulama: Eğitim/Test, K-Fold, Aşırı Öğrenme
 
 ### K-Katlı Çapraz Doğrulama (K-Fold Cross Validation)
 
@@ -792,7 +1200,7 @@ Veri K eşit parçaya bölünür; her turda **bir parça test**, kalanlar **eği
 - **Eksik öğrenme** (*underfitting*): Model çok basit, eğitim ve test hatası **ikisi de yüksek**
 - **Aşırı öğrenme** (*overfitting*): Model eğitim verisini **ezberler** (gürültü dahil) → eğitim hatası ≈ 0, test hatası yüksek
 
-## 5.8 ❓ Sınıflandırma Neden Yapılır?
+## 6.8 ❓ Sınıflandırma Neden Yapılır?
 
 **Sınıflandırma**, geçmişte **etiketlenmiş** örneklerden öğrenip **yeni bir örneğin hangi önceden tanımlı sınıfa ait olduğunu** otomatik olarak tahmin etmektir. Amaç:
 
@@ -806,7 +1214,7 @@ Veri K eşit parçaya bölünür; her turda **bir parça test**, kalanlar **eği
 
 > ⚠️ Ama bir sınıflandırıcıyı kullanmadan önce **ne kadar iyi olduğunu ölçmek** zorundayız → **karışıklık matrisi, istatistiksel ölçütler ve ROC.**
 
-## 5.9 Karışıklık Matrisi (Confusion Matrix)
+## 6.9 Karışıklık Matrisi (Confusion Matrix)
 
 Sınıflandırıcının tahminleriyle gerçek sınıfları karşılaştıran tablodur. **Pozitif** = aradığımız sınıf (ör. hasta), **Negatif** = diğeri (sağlam).
 
@@ -840,9 +1248,26 @@ Sınıflandırıcının tahminleriyle gerçek sınıfları karşılaştıran tab
 | **Dolandırıcılık tespiti** | Duyarlılık + F1 | Dolandırıcılığı kaçırmak pahalı ama çok yanlış alarm da müşteriyi kızdırır |
 | **Dengesiz veri** | **F1, ROC-AUC** (doğruluk DEĞİL!) | Aşağıdaki tuzak 👇 |
 
+### Çok Sınıflı Karışıklık Matrisi
+
+3 sınıf (Kedi, Köpek, Kuş), 30 test örneği. **Satır = gerçek, sütun = tahmin; köşegen = doğru tahminler.**
+
+| Gerçek ↓ / Tahmin → | Kedi | Köpek | Kuş | **Duyarlılık** (satır) |
+|---|---|---|---|---|
+| **Kedi** | **8** | 2 | 0 | 8/10 = **0.80** |
+| **Köpek** | 1 | **6** | 3 | 6/10 = **0.60** |
+| **Kuş** | 0 | 1 | **9** | 9/10 = **0.90** |
+| **Kesinlik** (sütun) | 8/9 = **0.889** | 6/9 = **0.667** | 9/12 = **0.75** | |
+
+- Her sınıf için ayrı TP/FP/FN: ör. **Köpek** için TP = 6, FP = 2 + 1 = 3 (sütundaki diğerleri), FN = 1 + 3 = 4 (satırdaki diğerleri)
+- **Doğruluk** = köşegen toplamı / toplam = (8 + 6 + 9) / 30 = **0.767**
+- **Makro ortalama** (her sınıfa eşit ağırlık): Kesinlik = (0.889 + 0.667 + 0.75)/3 = **0.769**, Duyarlılık = (0.8 + 0.6 + 0.9)/3 = **0.767**
+- **Mikro ortalama** (tüm TP/FP/FN'ler toplanıp hesaplanır) = tek etiketli sınıflandırmada **doğruluğa eşittir** = 0.767
+- Matristen **hangi sınıfların karıştırıldığı** da okunur: Köpeklerin 3'ü Kuş sanılmış → model en çok bu ikisini karıştırıyor.
+
 > ⚠️ **Doğruluk tuzağı (dengesiz veri):** 1000 kişiden sadece 10'u hasta olsun. Model hiçbir şey öğrenmeden **herkese "sağlam"** desin → Doğruluk = 990/1000 = **%99** 😮 ama Duyarlılık = 0/10 = **%0** → hiçbir hastayı bulamadı! Bu yüzden tek başına doğruluğa güvenilmez.
 
-## 5.10 Eşik Değeri, ROC Eğrisi ve AUC
+## 6.10 Eşik Değeri, ROC Eğrisi ve AUC
 
 Çoğu sınıflandırıcı doğrudan "hasta/sağlam" demez, **bir olasılık (skor)** verir: ör. "%73 hasta". Bunu karara çevirmek için bir **eşik** (*threshold*) seçilir: skor ≥ eşik → pozitif.
 
@@ -882,7 +1307,46 @@ Yukarıdaki gerçek örnekte **K-En Yakın Komşu (AUC = 0.887)** en iyi, **deri
 
 **ROC'un avantajları:** Eşikten bağımsız karşılaştırma yapar; modelleri tek grafikte kıyaslar; uygulamaya göre (kanser → yüksek TPR, spam → düşük FPR) **en uygun eşiği seçmeye** yardım eder.
 
-## 5.11 Regresyon İçin İstatistiksel Ölçütler
+### ✍️ ROC Eğrisini Elle Çizme (Sınavda Bu Tarz Soru Gelebilir!)
+
+Bir model 10 örneğe şu skorları vermiş (5 Pozitif, 5 Negatif). **Skorlar büyükten küçüğe sıralı:**
+
+| Örnek | #1 | #2 | #3 | #4 | #5 | #6 | #7 | #8 | #9 | #10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Skor | 0.95 | 0.85 | 0.78 | 0.70 | 0.62 | 0.55 | 0.48 | 0.40 | 0.30 | 0.15 |
+| Gerçek | P | P | **N** | P | P | **N** | P | N | N | N |
+
+**Yöntem:** Eşiği en üstten başlayıp her skora sırayla indir. "Skor ≥ eşik → Pozitif" de; her eşikte TPR = TP/5 ve FPR = FP/5 hesapla.
+
+| Eşik | TP | FP | **TPR** | **FPR** | Nokta |
+|---|---|---|---|---|---|
+| > 0.95 | 0 | 0 | 0.0 | 0.0 | (0, 0) |
+| 0.95 | 1 | 0 | 0.2 | 0.0 | ↑ yukarı |
+| 0.85 | 2 | 0 | 0.4 | 0.0 | ↑ |
+| 0.78 | 2 | 1 | 0.4 | 0.2 | → sağa (N geldi) |
+| 0.70 | 3 | 1 | 0.6 | 0.2 | ↑ |
+| 0.62 | 4 | 1 | 0.8 | 0.2 | ↑ |
+| 0.55 | 4 | 2 | 0.8 | 0.4 | → |
+| 0.48 | 5 | 2 | 1.0 | 0.4 | ↑ |
+| 0.40 | 5 | 3 | 1.0 | 0.6 | → |
+| 0.30 | 5 | 4 | 1.0 | 0.8 | → |
+| 0.15 | 5 | 5 | 1.0 | 1.0 | (1, 1) |
+
+> 🧠 **Kısa yol:** Sıralı listede **her P için 1/P kadar yukarı**, **her N için 1/N kadar sağa** git. (Burada 1/5 = 0.2)
+
+![ROC elle hesap](images/roc_elle_hesap.png)
+
+**AUC hesabı — iki yol:**
+1. **Alan (dikdörtgenler):** FPR 0→0.2 aralığında yükseklik 0.4, 0.2→0.4'te 0.8, 0.4→1.0'da 1.0 → $0.2 \times 0.4 + 0.2 \times 0.8 + 0.6 \times 1.0 = 0.08 + 0.16 + 0.60 = \mathbf{0.84}$
+2. **Çift sayma (AUC'nin anlamı):** 5 × 5 = 25 (P, N) çifti var. Pozitifin skoru negatiften büyük olan çiftleri say: #1 → 5, #2 → 5, #4 → 4, #5 → 4, #7 → 3 = **21** → AUC = 21/25 = **0.84** ✅
+
+**Eşik = 0.5 seçilirse:** TP = 4, FP = 2, FN = 1, TN = 3 → Doğruluk = 0.70, Kesinlik = 4/6 = 0.667, Duyarlılık = 0.80, Özgüllük = 0.60.
+
+### Kesinlik–Duyarlılık (PR) Eğrisi
+
+ROC'a benzer şekilde eşik değiştirilerek çizilir ama eksenler **x = Duyarlılık (Recall)**, **y = Kesinlik (Precision)**'dır. Pozitif sınıf **çok nadir** ise (ör. 10.000 işlemden 10'u dolandırıcılık) ROC iyimser görünebilir, çünkü çok sayıdaki TN, FPR'yi küçük tutar; **PR eğrisi** bu durumda modelin gerçek performansını daha iyi gösterir. PR eğrisinde ideal nokta **sağ üst köşedir.**
+
+## 6.11 Regresyon İçin İstatistiksel Ölçütler
 
 Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı ölçütler kullanılır ($y_i$: gerçek, $\hat y_i$: tahmin):
 
@@ -895,11 +1359,11 @@ Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı
 
 ---
 
-# 6. Nöronların Haberleşmesi ve Beynin Veriyi Algılaması
+# 7. Nöronların Haberleşmesi ve Beynin Veriyi Algılaması
 
 > Hoca: *"Nöronların haberleşmesi, beyinle etkileşip veriyi algılaması mantığı önemli."* — Bu bölüm hem biyolojiyi hem de **yapay sinir ağlarının bu biyolojiden nasıl esinlendiğini** anlatıyor.
 
-## 6.1 Temel Bilgiler
+## 7.1 Temel Bilgiler
 
 - İnsan beyninde yaklaşık **86 milyar nöron** vardır.
 - Her nöron **binlerce** (≈1.000–10.000) başka nöronla bağlantı (**sinaps**) kurar → toplam **~100 trilyon** sinaps.
@@ -907,7 +1371,7 @@ Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı
 - **Nöron içinde** iletişim → **ELEKTRİKSEL** (aksiyon potansiyeli)
 - **Nöronlar arasında** iletişim → **KİMYASAL** (sinaps, nörotransmitter)
 
-## 6.2 Nöronun Yapısı
+## 7.2 Nöronun Yapısı
 
 ![Nöron yapısı](images/noron_yapisi.png)
 
@@ -930,7 +1394,7 @@ Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı
 | **Motor (efferent) nöron** | Merkezden **kaslara/bezlere** komut taşır |
 | **Ara nöron (internöron)** | Merkezi sinir sisteminde nöronlar arası bağlantı, işleme |
 
-## 6.3 Nöron İçi İletişim: Aksiyon Potansiyeli (Elektriksel)
+## 7.3 Nöron İçi İletişim: Aksiyon Potansiyeli (Elektriksel)
 
 ![Aksiyon potansiyeli](images/aksiyon_potansiyeli.png)
 
@@ -950,7 +1414,7 @@ Bu ilke, ilk yapay nöron modeli olan **McCulloch–Pitts nöronunun (1943)** ve
 
 **İletim hızı:** Miyelinli aksonlarda ~**120 m/s**'ye kadar, miyelinsizlerde ~1 m/s. (Multipl skleroz/MS hastalığında miyelin hasar görür → sinyal yavaşlar.)
 
-## 6.4 Nöronlar Arası İletişim: Sinaps (Kimyasal)
+## 7.4 Nöronlar Arası İletişim: Sinaps (Kimyasal)
 
 ![Sinaps](images/sinaps.png)
 
@@ -987,7 +1451,7 @@ Bir nörona aynı anda yüzlerce uyarıcı ve baskılayıcı sinyal gelir. Soma 
 
 > 👉 Bu tam olarak yapay nörondaki **ağırlıklı toplam** $\sum w_i x_i$'dir: uyarıcı sinaps = **pozitif ağırlık**, baskılayıcı sinaps = **negatif ağırlık**.
 
-## 6.5 Beyin Veriyi Nasıl Algılar?
+## 7.5 Beyin Veriyi Nasıl Algılar?
 
 ![Algılama yolu](images/algilama_yolu.png)
 
@@ -1031,15 +1495,17 @@ Bir nörona aynı anda yüzlerce uyarıcı ve baskılayıcı sinyal gelir. Soma 
 - **Aşağıdan yukarı işleme** (*bottom-up*): Duyulardan gelen ham veri → algı
 - **Yukarıdan aşağı işleme** (*top-down*): Bellek, beklenti, deneyim algıyı şekillendirir (optik illüzyonlar bu yüzden olur; beyin eksik bilgiyi **tahminle** tamamlar)
 
-## 6.6 Beyin Nasıl Öğrenir? → Sinaptik Plastisite
+## 7.6 Beyin Nasıl Öğrenir? → Sinaptik Plastisite
 
 - **Hebb Kuralı (Donald Hebb, 1949):** *"Birlikte ateşlenen nöronlar birbirine bağlanır."* (*Cells that fire together, wire together*) → İki nöron sık sık birlikte aktifse aralarındaki sinaps **güçlenir.**
 - **Uzun süreli güçlenme (LTP):** Tekrarlanan uyarıyla sinaps kalıcı olarak güçlenir → **öğrenme ve bellek** böyle oluşur.
 - Kullanılmayan bağlantılar **zayıflar / budanır.**
 
+**Hebb kuralının matematiksel hâli:** $\Delta w_{ij} = \eta \cdot x_i \cdot y_j$ → giriş ($x_i$) ve çıkış ($y_j$) **aynı anda** aktifse ağırlık artar ($\eta$: öğrenme oranı).
+
 > 👉 Yapay sinir ağlarında **öğrenme = ağırlıkların güncellenmesi**dir. Biyolojide sinaps gücü değişir, YSA'da $w_i$ değişir (geri yayılım / backpropagation ile).
 
-## 6.7 Biyolojik Nörondan Yapay Nörona
+## 7.7 Biyolojik Nörondan Yapay Nörona
 
 ![Biyolojik ve yapay nöron](images/biyolojik_vs_yapay_noron.png)
 
@@ -1065,9 +1531,54 @@ $$
 
 **Önemli farklar:** Beyin ~20 W ile çalışır, **paralel** ve **çok seyrek** ateşleme yapar, zaman (spike) bilgisini kullanır; yapay ağlar ise çok daha fazla enerji ve veri ister. Beynin ateşleme (spike) tabanlı çalışmasını taklit eden modellere **Spiking Neural Networks**, bunlara özel çiplere **nöromorfik çipler** denir.
 
+## 7.8 Aktivasyon Fonksiyonları (Yapay "Ateşleme" Kuralları)
+
+| Fonksiyon | Formül | Çıkış aralığı | Not |
+|---|---|---|---|
+| **Basamak (step)** | $f(x) = 1$ eğer $x > 0$, değilse $0$ | {0, 1} | **"Hepsi ya da hiç"** — McCulloch–Pitts, perceptron |
+| **Sigmoid** | $\frac{1}{1+e^{-x}}$ | (0, 1) | Olasılık gibi yorumlanır; derin ağlarda **gradyan kaybolması** sorunu |
+| **Tanh** | $\frac{e^x - e^{-x}}{e^x + e^{-x}}$ | (−1, 1) | Sıfır merkezli sigmoid |
+| **ReLU** | $\max(0, x)$ | [0, ∞) | Derin öğrenmede en yaygın; hızlı. Biyolojideki "eşik altı → sessiz" davranışına benzer |
+| **Softmax** | $\frac{e^{x_i}}{\sum_j e^{x_j}}$ | (0, 1), toplam = 1 | **Çok sınıflı** çıkış katmanı (her sınıf için olasılık) |
+
+> ⚠️ Aktivasyon fonksiyonu **doğrusal olmamalıdır**; yoksa kaç katman eklersen ekle ağ tek bir doğrusal fonksiyona indirgenir.
+
+## 7.9 ✍️ Perceptron'u Elle Eğitme ve XOR Problemi
+
+**Perceptron öğrenme kuralı** (Rosenblatt, 1958):
+
+$$
+y = \begin{cases}1 & \text{net} = w_1x_1 + w_2x_2 + b > 0\\ 0 & \text{aksi halde}\end{cases}
+\qquad
+\begin{aligned} e &= t - y \quad (t: \text{hedef})\\ w_i &\leftarrow w_i + \eta\, e\, x_i\\ b &\leftarrow b + \eta\, e \end{aligned}
+$$
+
+**Görev: VE (AND) kapısını öğren.** Başlangıç: $w_1 = 0.3,\ w_2 = 0.2,\ b = -0.1,\ \eta = 0.1$
+
+| Epok | $(x_1, x_2)$ | $t$ | net | $y$ | $e$ | Yeni $w_1,\ w_2,\ b$ |
+|---|---|---|---|---|---|---|
+| 1 | (0,0) | 0 | −0.1 | 0 | 0 | 0.3, 0.2, −0.1 |
+| 1 | (0,1) | 0 | +0.1 | 1 | **−1** | 0.3, **0.1**, **−0.2** |
+| 1 | (1,0) | 0 | +0.1 | 1 | **−1** | **0.2**, 0.1, **−0.3** |
+| 1 | (1,1) | 1 | 0.0 | 0 | **+1** | **0.3**, **0.2**, **−0.2** |
+| 2 | (0,0) | 0 | −0.2 | 0 | 0 | 0.3, 0.2, −0.2 |
+| 2 | (0,1) | 0 | 0.0 | 0 | 0 | 0.3, 0.2, −0.2 |
+| 2 | (1,0) | 0 | +0.1 | 1 | **−1** | **0.2**, 0.2, **−0.3** |
+| 2 | (1,1) | 1 | +0.1 | 1 | 0 | 0.2, 0.2, −0.3 |
+| 3 | (0,0) | 0 | −0.3 | 0 | 0 | — |
+| 3 | (0,1) | 0 | −0.1 | 0 | 0 | — |
+| 3 | (1,0) | 0 | −0.1 | 0 | 0 | — |
+| 3 | (1,1) | 1 | +0.1 | 1 | 0 | — ✅ **Hiç hata yok → öğrendi** |
+
+> **Öğrenilen nöron:** $0.2\,x_1 + 0.2\,x_2 - 0.3 > 0$ → sadece iki giriş de 1 iken net = 0.1 > 0. Hata olduğunda ağırlığın değişmesi = biyolojide **sinapsın güçlenmesi/zayıflaması.**
+
+![Perceptron ve XOR](images/perceptron_xor.png)
+
+**XOR problemi:** AND ve OR noktaları **tek bir doğruyla** ayrılabilir (doğrusal ayrılabilir) → tek perceptron öğrenir. **XOR** (girişler farklıysa 1) için **tek doğru yoktur** → tek katmanlı perceptron **asla** öğrenemez. Minsky & Papert bunu **1969**'da gösterdi ve YSA araştırmaları uzun süre durdu (YZ kışına katkı). Çözüm: **gizli katman** ekleyip **çok katmanlı perceptron (MLP)** + **geri yayılım** (1986). Gizli katman iki doğru çizer (örn. bir nöron OR, bir nöron NAND), çıkış nöronu bunları VE'ler.
+
 ---
 
-# 7. Ek: Temel YZ Kavramları (PDF 1 Özeti)
+# 8. Ek: Temel YZ Kavramları (PDF 1 Özeti)
 
 **Yapay Zekâ:** Bilgisayar sistemlerinin **insan zekâsını taklit ederek** öğrenme, problem çözme, karar verme, dil anlama gibi görevleri yerine getirme yeteneği.
 
@@ -1094,11 +1605,12 @@ $$
 
 ---
 
-# 8. Konular Arası Bağlantılar (Büyük Resim)
+# 9. Konular Arası Bağlantılar (Büyük Resim)
 
 | Konu | İlham kaynağı | Bilgi nereden gelir? | Ne için kullanılır? |
 |---|---|---|---|
 | **Uzman Sistemler** | İnsan uzmanın akıl yürütmesi | **Elle yazılan kurallar** (sembolik) | Teşhis, konfigürasyon, karar destek |
+| **Çıkarım yöntemleri** | Mantık, olasılık, insanın belirsiz dili | Kurallar + CF / olasılık / üyelik dereceleri | Bilinenden yeni sonuç üretmek (zincirleme, Bayes, bulanık) |
 | **Makine Öğrenmesi** | İstatistik | **Veriden** öğrenilen örüntüler | Sınıflandırma, regresyon, kümeleme |
 | **Yapay Sinir Ağları** | **Beyindeki nöronlar** | Veriden — ağırlık güncelleme | Görüntü, ses, dil, derin öğrenme |
 | **Karınca Kolonisi** | **Karıncaların feromon izi** | Koloninin ortak "hafızası" (feromon) | **Ayrık** optimizasyon (rota, TSP) |
@@ -1109,7 +1621,7 @@ $$
 
 ---
 
-# 9. Sınav Öncesi Hızlı Tekrar ve Formül Kağıdı
+# 10. Sınav Öncesi Hızlı Tekrar ve Formül Kağıdı
 
 ### 🐜 ACO
 - **Dorigo, 1992**, Ant System, sürü zekâsı, meta-sezgisel, **TSP**
@@ -1126,6 +1638,7 @@ $$
 - 3 kural: tek cinsiyet · çekicilik ∝ parlaklık, mesafeyle azalır · parlaklık = amaç fonksiyonu
 - $\beta = \beta_0 e^{-\gamma r^2}$, &nbsp; $x_i \leftarrow x_i + \beta_0 e^{-\gamma r_{ij}^2}(x_j - x_i) + \alpha\epsilon_i$
 - γ → 0: PSO benzeri; γ → ∞: rastgele arama; karmaşıklık $O(n^2 t)$
+- Elle adım: $r^2$ → $\beta = \beta_0 e^{-\gamma r^2}$ → çekim $\beta(x_j - x_i)$ + rastgele $\alpha\epsilon$ → yeni konum → parlaklık arttı mı?
 
 ### 📚 Uzman Sistem
 - Bilgi tabanı + **çıkarım motoru** + çalışma belleği + arayüz + **açıklama** + bilgi edinme
@@ -1133,11 +1646,23 @@ $$
 - DENDRAL (ilk), MYCIN (tıp, CF), XCON (konfigürasyon), PROSPECTOR (maden)
 - En büyük sorun: **bilgi edinme darboğazı**, öğrenememe, kırılganlık
 
+### 🧩 Çıkarım
+- **Tümdengelim** (genel → özel, kesin; uzman sistem) · **Tümevarım** (örnek → genel, olası; ML) · **Abdüksiyon** (gözlem → en iyi açıklama; teşhis)
+- **Modus Ponens:** p→q, p ⊢ q · **Modus Tollens:** p→q, ¬q ⊢ ¬p · **Çözünürlük:** p∨q, ¬q∨r ⊢ p∨r (Prolog)
+- İleri zincirleme döngüsü: **eşleştir → çakışma çözümü → tetikle → tekrarla**; geri zincirleme: hedef yığını, eksik bilgiyi kullanıcıya sorar
+- Çakışma çözümü: refraksiyon, yenilik, **özgüllük**, öncelik (salience); hızlandırma: **Rete**
+- **CF:** VE → min, VEYA → max, sonuç = CF(koşul)·CF(kural); birleştirme (+,+): $CF_1 + CF_2(1-CF_1)$; (+,−): $\frac{CF_1+CF_2}{1-\min(|CF_1|,|CF_2|)}$
+- **Bayes:** $P(H|E) = \frac{P(E|H)P(H)}{P(E)}$ — önsel × olabilirlik → sonsal; nadir hastalıkta pozitif test ≠ hasta (%1, %90, %5 → **%15.4**)
+- **Bulanık (Mamdani):** bulanıklaştır → kural (VE=min, VEYA=max) → birleştir (max) → **durulaştır (ağırlık merkezi)**; Zadeh 1965
+- ML'de çıkarım = eğitilmiş modelle **tahmin** (sadece ileri geçiş)
+
 ### 🤖 Agentic AI
 - Ajan = sensör + aktüatör; **PEAS**; ajan türleri: refleks → model → hedef → fayda → öğrenen
 - Döngü: **Algıla → Düşün/Planla → Eylem (araç) → Gözlemle → Öğren/Hatırla**
 - Bileşenler: LLM, planlama, bellek, araç kullanımı, yansıtma, insan onayı
 - GenAI **cevap verir**, Agentic AI **işi yapar**
+- Ortam: gözlemlenebilir/kısmi · deterministik/stokastik · epizodik/ardışık · statik/dinamik · ayrık/sürekli · tek/çoklu ajan
+- ReAct: **Düşünce → Eylem (araç) → Gözlem** tekrarı · Desenler: yansıtma, araç, planlama, çoklu ajan · RAG, MCP
 
 ### 📊 ML Ölçütleri
 - Doğruluk = (TP+TN)/Toplam · Kesinlik = TP/(TP+FP) · **Duyarlılık = TPR = TP/(TP+FN)**
@@ -1146,6 +1671,9 @@ $$
 - **ROC:** y = TPR, x = FPR, tüm eşikler; **AUC:** 1 = mükemmel, 0.5 = rastgele
 - Dengesiz veride doğruluk yanıltır → F1 / AUC
 - Entropi = −p log₂p − q log₂q; Gain(S,A) = Entropi(S) − Σ (|Sᵥ|/|S|)·Entropi(Sᵥ)
+- **ROC'u elle çiz:** skorları sırala, her P'de 1/P yukarı, her N'de 1/N sağa; **AUC = doğru sıralı (P,N) çifti / P·N**
+- Çok sınıflı matris: satır = gerçek → duyarlılık; sütun = tahmin → kesinlik; makro = sınıf ortalaması, mikro = doğruluk
+- KNN: K değişince sonuç değişebilir, K tek seçilir · Naive Bayes: $P(c)\prod P(x_i|c)$, sıfır frekans → Laplace
 
 ### ⚡ Nöron
 - Dendrit (al) → Soma (topla) → Akson tepeciği (eşik) → Akson (ilet) → Sinaps (aktar)
@@ -1153,11 +1681,12 @@ $$
 - **Hepsi ya da hiç**; şiddet → **frekansla** kodlanır
 - Nöron içi **elektriksel**, nöronlar arası **kimyasal** (Ca²⁺ → vezikül → nörotransmitter → reseptör)
 - Uyaran → **reseptör (transdüksiyon)** → duyusal nöron → omurilik → **talamus** → korteks → karar → motor nöron → kas
-- **Hebb:** birlikte ateşlenen nöronlar birbirine bağlanır → YSA'da ağırlık güncelleme
+- **Hebb:** birlikte ateşlenen nöronlar birbirine bağlanır → YSA'da ağırlık güncelleme ($\Delta w = \eta x y$)
+- **Perceptron:** $w \leftarrow w + \eta (t - y) x$; AND/OR öğrenir, **XOR öğrenemez** (doğrusal ayrılamaz → gizli katman, Minsky & Papert 1969)
 
 ---
 
-# 10. Olası Sınav Soruları ve Cevapları
+# 11. Olası Sınav Soruları ve Cevapları
 
 > Cevapları görmek için soruya tıkla.
 
@@ -1233,153 +1762,281 @@ Kargo/dağıtım araçlarının rota planlaması (VRP), internet/telekom ağlar�
 
 </details>
 
+<details>
+<summary><b>S11.</b> (ACO) ACS'deki q₀ parametresi ve yerel feromon güncellemesi ne işe yarar?</summary>
+
+q ≤ q₀ ise karınca $\tau\eta^\beta$ değeri **en büyük** kenarı doğrudan seçer (**sömürü**); q > q₀ ise klasik olasılık kuralını kullanır (**keşif**). q₀ büyüdükçe algoritma daha açgözlü olur. **Yerel güncelleme** $\tau \leftarrow (1-\xi)\tau + \xi\tau_0$ ile karınca geçtiği kenarın feromonunu **azaltır**; böylece aynı iterasyondaki diğer karıncalar aynı yolu izlemek yerine farklı yolları dener → çeşitlilik artar, erken yakınsama önlenir.
+
+</details>
+
 ### 🔥 Ateşböceği
 
 <details>
-<summary><b>S11.</b> Ateşböceği algoritmasının üç temel kuralı nedir?</summary>
+<summary><b>S12.</b> Ateşböceği algoritmasının üç temel kuralı nedir?</summary>
 
 1) Tüm ateşböcekleri tek cinsiyetlidir, herkes herkesi çekebilir. 2) Çekicilik parlaklıkla orantılıdır ve mesafe arttıkça azalır; sönük olan parlak olana gider, kendinden parlak yoksa rastgele hareket eder. 3) Parlaklık amaç fonksiyonunun değeriyle belirlenir.
 
 </details>
 
 <details>
-<summary><b>S12.</b> Hareket denklemini yazınız; γ → 0 ve γ → ∞ durumlarını yorumlayınız.</summary>
+<summary><b>S13.</b> Hareket denklemini yazınız; γ → 0 ve γ → ∞ durumlarını yorumlayınız.</summary>
 
 $x_i \leftarrow x_i + \beta_0 e^{-\gamma r_{ij}^2}(x_j - x_i) + \alpha\epsilon_i$. **γ → 0:** çekicilik mesafeden bağımsız, herkes en parlağı görür → PSO'ya benzer. **γ → ∞:** çekicilik sıfır, kimse kimseyi görmez → rastgele arama.
 
 </details>
 
 <details>
-<summary><b>S13.</b> ACO ile ateşböceği algoritmasını karşılaştırınız.</summary>
+<summary><b>S14.</b> ACO ile ateşböceği algoritmasını karşılaştırınız.</summary>
 
 İkisi de sürü zekâsı, popülasyon tabanlı, meta-sezgisel ve olasılıksaldır. ACO **dolaylı** iletişim (feromon/stigmerji) kullanır, **ayrık** problemlere (TSP, rota) uygundur, kenarlarda bir "hafıza" (feromon) tutar. FA **doğrudan** iletişim (ışığı görme) kullanır, **sürekli** fonksiyon optimizasyonuna uygundur, çok tepeli problemlerde birden çok optimumu bulabilir; hafızası yoktur.
+
+</details>
+
+<details>
+<summary><b>S15.</b> (Sayısal, Ateşböceği) β₀ = 1, γ = 0.1, α = 0.2, ε = (0.1, −0.3). x_i = (4, 2), daha parlak x_j = (1, 1). x_i'nin yeni konumu nedir?</summary>
+
+r² = 9 + 1 = 10 → β = e⁻¹ = 0.368 → çekim = 0.368·(−3, −1) = (−1.104, −0.368); rastgele = (0.02, −0.06) → **yeni konum = (2.916, 1.572)**. Bkz. Bölüm 2.4.
 
 </details>
 
 ### 📚 Uzman Sistemler
 
 <details>
-<summary><b>S14.</b> Uzman sistemin bileşenlerini ve görevlerini yazınız.</summary>
+<summary><b>S16.</b> Uzman sistemin bileşenlerini ve görevlerini yazınız.</summary>
 
 Bilgi tabanı (kurallar ve olgular), çıkarım motoru (kuralları uygulayıp sonuç üretir), çalışma belleği (o anki olgular), kullanıcı arayüzü, açıklama modülü (nasıl/neden sorularını cevaplar), bilgi edinme modülü (uzmandan bilgiyi aktarır). Bkz. Bölüm 3.3.
 
 </details>
 
 <details>
-<summary><b>S15.</b> İleri ve geri zincirlemeyi örnekle karşılaştırınız.</summary>
+<summary><b>S17.</b> İleri ve geri zincirlemeyi örnekle karşılaştırınız.</summary>
 
 **İleri:** Olgulardan başlar, kuralları tetikleyerek sonuca gider (veri güdümlü) — ör. "ateş + öksürük → enfeksiyon → grip → istirahat öner"; XCON. **Geri:** Hipotezden başlar, onu kanıtlamak için gereken koşulları geriye doğru arar (hedef güdümlü) — ör. "Grip mi? → enfeksiyon ve kas ağrısı var mı? → ateş ve öksürük var mı?"; MYCIN.
 
 </details>
 
 <details>
-<summary><b>S16.</b> Uzman sistemlerin makine öğrenmesine göre avantaj ve dezavantajı nedir?</summary>
+<summary><b>S18.</b> Uzman sistemlerin makine öğrenmesine göre avantaj ve dezavantajı nedir?</summary>
 
 **Avantaj:** Kararlarını açıklayabilir (şeffaf), az veriyle çalışır, uzman bilgisini korur. **Dezavantaj:** Öğrenemez, kuralları elle yazmak zor ve pahalıdır (bilgi edinme darboğazı), uzmanlık alanı dışında kırılgandır, sağduyusu yoktur.
+
+</details>
+
+### 🧩 Yapay Zekâda Çıkarım
+
+<details>
+<summary><b>S19.</b> Yapay zekâda çıkarım nedir? Hangi yöntemlerle yapılır?</summary>
+
+Çıkarım, mevcut bilgiden (olgular, kurallar, olasılıklar, veriler) açıkça yazılmamış yeni sonuçlar üretmektir. **Mantıksal** çıkarım (Modus Ponens, çözünürlük, ileri/geri zincirleme — uzman sistemler), **güven faktörlü** çıkarım (MYCIN), **olasılıksal** çıkarım (Bayes teoremi, Bayes ağları), **bulanık** çıkarım (Mamdani: bulanıklaştırma–kural–birleştirme–durulaştırma) ve **makine öğrenmesinde** eğitilmiş modelle tahmin (ileri geçiş) başlıca yöntemlerdir. LLM tabanlı ajanlar ise düşün–eylem–gözlem döngüsüyle (ReAct) çok adımlı akıl yürütür.
+
+</details>
+
+<details>
+<summary><b>S20.</b> Tümdengelim, tümevarım ve abdüksiyonu örnekle açıklayınız.</summary>
+
+**Tümdengelim:** genelden özele, kesin — "Tüm insanlar ölümlü, Sokrates insan → Sokrates ölümlü" (uzman sistemler). **Tümevarım:** örneklerden genele, olası — "Gördüğüm tüm kuğular beyaz → tüm kuğular beyaz" (makine öğrenmesi). **Abdüksiyon:** gözlemden en olası açıklamaya — "Çimen ıslak → yağmur yağmış olabilir" (teşhis sistemleri).
+
+</details>
+
+<details>
+<summary><b>S21.</b> Modus Ponens ve Modus Tollens nedir? "Sonucu onaylama" neden hatalıdır?</summary>
+
+**Modus Ponens:** p→q ve p doğruysa q doğrudur. **Modus Tollens:** p→q ve q yanlışsa p yanlıştır. **Sonucu onaylama** (p→q, q ⊢ p) hatalıdır çünkü q başka bir nedenle de doğru olabilir: "Yağmur yağarsa yol ıslanır; yol ıslak → yağmur yağdı" — fıskiye de ıslatmış olabilir.
+
+</details>
+
+<details>
+<summary><b>S22.</b> (Uygulama) R1: kılı var → memeli, R2: memeli ∧ et yer → etobur, R3: etobur ∧ sarımsı-kahve ∧ koyu benekli → çita. Olgular: kılı var, et yer, sarımsı-kahve, koyu benekli. İleri zincirleme ile sonucu bulunuz.</summary>
+
+Döngü 1: R1 tetiklenir → **memeli** eklenir. Döngü 2: R2 → **etobur** eklenir. Döngü 3: R3 → **çita** eklenir. Döngü 4: tetiklenecek yeni kural yok → dur. **Sonuç: çita.** (Bkz. Bölüm 4.3)
+
+</details>
+
+<details>
+<summary><b>S23.</b> Çakışma çözümü nedir? Stratejilerini yazınız.</summary>
+
+Aynı anda birden fazla kuralın koşulu sağlandığında hangisinin önce çalışacağına karar verme işlemidir. Stratejiler: **refraksiyon** (aynı kural aynı olgularla tekrar tetiklenmez), **yenilik** (en yeni olguyu kullanan kural), **özgüllük** (daha çok koşullu, daha özel kural), **öncelik/salience** (elle verilen öncelik), **sıra** (ilk yazılan kural).
+
+</details>
+
+<details>
+<summary><b>S24.</b> (Sayısal) R1: ateş ∧ öksürük → grip (CF 0.7), R2: kas ağrısı → grip (CF 0.5). CF(ateş) = 0.9, CF(öksürük) = 0.6, CF(kas ağrısı) = 0.8. Grip'in güven faktörü nedir?</summary>
+
+R1: min(0.9, 0.6) × 0.7 = **0.42** · R2: 0.8 × 0.5 = **0.40** · Birleşim: 0.42 + 0.40 × (1 − 0.42) = **0.652**
+
+</details>
+
+<details>
+<summary><b>S25.</b> (Sayısal) Hastalık sıklığı %1, test duyarlılığı %90, yanlış pozitif oranı %5. Pozitif test sonucu alan kişinin hasta olma olasılığı nedir?</summary>
+
+$P(H|+) = \frac{0.9 \times 0.01}{0.9 \times 0.01 + 0.05 \times 0.99} = \frac{0.009}{0.0585} \approx \mathbf{0.154}$. Hastalık nadir olduğundan pozitiflerin çoğu yanlış alarmdır (taban oranı yanılgısı).
+
+</details>
+
+<details>
+<summary><b>S26.</b> Bulanık çıkarımın (Mamdani) adımlarını açıklayınız.</summary>
+
+1) **Bulanıklaştırma:** keskin girdiler üyelik fonksiyonlarıyla 0–1 arası derecelere çevrilir (28 °C → 0.7 ılık, 0.3 sıcak). 2) **Kural değerlendirme:** VE için min, VEYA için max alınarak her kuralın ateşleme gücü bulunur. 3) **Birleştirme:** her kuralın çıktı kümesi ateşleme gücünde kesilir ve max ile birleştirilir. 4) **Durulaştırma:** birleşik şekil tek sayıya çevrilir (genelde ağırlık merkezi/centroid). Bkz. Bölüm 4.6 (c).
+
+</details>
+
+<details>
+<summary><b>S27.</b> Makine öğrenmesinde "eğitim" ile "çıkarım" arasındaki fark nedir?</summary>
+
+Eğitimde model veriden öğrenir, ağırlıklar geri yayılımla güncellenir (yavaş, bir kez). Çıkarımda eğitilmiş model, ağırlıklar sabitken yeni veriyi ileri geçişten geçirerek tahmin üretir (hızlı, her kullanımda).
 
 </details>
 
 ### 🤖 Agentic AI
 
 <details>
-<summary><b>S17.</b> Agentic AI nedir? Klasik üretken yapay zekâdan farkı nedir?</summary>
+<summary><b>S28.</b> Agentic AI nedir? Klasik üretken yapay zekâdan farkı nedir?</summary>
 
 Kendisine verilen hedefe ulaşmak için otonom olarak planlayan, araçlar kullanarak gerçek dünyada eylem yapan, sonucu gözlemleyip planını güncelleyen YZ'dir. Üretken YZ istenen içeriği **üretir** (tek seferlik cevap); Agentic AI çok adımlı bir döngüde **işi gerçekten yapar** (araç kullanır, bellek tutar, yüksek otonomi).
 
 </details>
 
 <details>
-<summary><b>S18.</b> Agentic AI'nin bir dış dünya probleminde nasıl uygulandığını bir örnekle adım adım açıklayınız.</summary>
+<summary><b>S29.</b> Agentic AI'nin bir dış dünya probleminde nasıl uygulandığını bir örnekle adım adım açıklayınız.</summary>
 
-Döngü: **Algıla → Düşün/Planla → Eylem → Gözlemle → Öğren.** Örn. müşteri hizmetleri: şikâyeti algılar → planlar (sipariş ve kargo kontrolü) → API'lerle sorgular → gecikmeyi gözlemler → politikaya göre yeniden planlar → (gerekirse insan onayıyla) yeni gönderim oluşturup müşteriye bildirir → gecikme örüntüsünü belleğe yazıp raporlar. Bkz. Bölüm 4.5.
+Döngü: **Algıla → Düşün/Planla → Eylem → Gözlemle → Öğren.** Örn. müşteri hizmetleri: şikâyeti algılar → planlar (sipariş ve kargo kontrolü) → API'lerle sorgular → gecikmeyi gözlemler → politikaya göre yeniden planlar → (gerekirse insan onayıyla) yeni gönderim oluşturup müşteriye bildirir → gecikme örüntüsünü belleğe yazıp raporlar. Bkz. Bölüm 5.5.
 
 </details>
 
 <details>
-<summary><b>S19.</b> Otonom bir araç için PEAS tanımını yapınız.</summary>
+<summary><b>S30.</b> Otonom bir araç için PEAS tanımını yapınız.</summary>
 
 **P:** güvenlik, hız, yasal sürüş, konfor · **E:** yol, trafik, yaya, hava · **A:** direksiyon, gaz, fren, sinyal, korna · **S:** kamera, LIDAR, radar, GPS, hız sensörü.
+
+</details>
+
+<details>
+<summary><b>S31.</b> Otonom taksinin ortam özelliklerini sınıflandırınız.</summary>
+
+**Kısmi gözlemlenebilir** (her şeyi göremez), **stokastik** (yayaların ne yapacağı belirsiz), **ardışık** (her karar sonrakini etkiler), **dinamik** (ajan düşünürken trafik değişir), **sürekli** (hız, direksiyon açısı), **çoklu ajanlı** (diğer sürücüler). Yani en zor ortam türüdür.
+
+</details>
+
+<details>
+<summary><b>S32.</b> ReAct nedir? Agentic AI'de neden önemlidir?</summary>
+
+**Reason + Act**: Ajan bir **düşünce** üretir (ne yapmalıyım?), bir **eylem** yapar (araç çağırır), sonucu **gözlemler** ve bu gözleme göre bir sonraki düşünceyi üretir. Böylece sabit bir senaryo yerine **duruma göre yeniden planlama** yapabilir; ara adımlar görünür olduğundan hatalar da izlenebilir.
 
 </details>
 
 ### 📊 Makine Öğrenmesi
 
 <details>
-<summary><b>S20.</b> Sınıflandırma neden yapılır?</summary>
+<summary><b>S33.</b> Sınıflandırma neden yapılır?</summary>
 
 Etiketli geçmiş veriden öğrenip yeni bir örneğin hangi önceden tanımlı sınıfa ait olduğunu otomatik tahmin etmek için: kararları otomatikleştirmek/hızlandırmak, bilinmeyen durumları tahmin etmek (teşhis, kredi), insan hatasını ve öznelliği azaltmak, riskleri önceden tespit etmek (dolandırıcılık, spam).
 
 </details>
 
 <details>
-<summary><b>S21.</b> TP = 40, FN = 10, FP = 5, TN = 45 için doğruluk, kesinlik, duyarlılık, özgüllük ve F1'i hesaplayınız.</summary>
+<summary><b>S34.</b> TP = 40, FN = 10, FP = 5, TN = 45 için doğruluk, kesinlik, duyarlılık, özgüllük ve F1'i hesaplayınız.</summary>
 
 Doğruluk = 85/100 = **0.85** · Kesinlik = 40/45 = **0.889** · Duyarlılık = 40/50 = **0.80** · Özgüllük = 45/50 = **0.90** · F1 = 2·0.889·0.8/(0.889+0.8) = **0.842**
 
 </details>
 
 <details>
-<summary><b>S22.</b> ROC eğrisi nedir, eksenleri nelerdir? AUC = 0.5 ve AUC = 1 ne anlama gelir?</summary>
+<summary><b>S35.</b> ROC eğrisi nedir, eksenleri nelerdir? AUC = 0.5 ve AUC = 1 ne anlama gelir?</summary>
 
 Sınıflandırıcının **tüm eşik değerleri** için **TPR'yi (y ekseni)** **FPR'ye (x ekseni)** karşı çizen grafiktir. Eğri sol üst köşeye ne kadar yakınsa model o kadar iyidir. AUC eğrinin altındaki alandır; **AUC = 1** mükemmel ayırım, **AUC = 0.5** rastgele tahmin (köşegen) demektir.
 
 </details>
 
 <details>
-<summary><b>S23.</b> Hangi durumda doğruluk yanıltıcıdır? Hangi ölçüt kullanılmalıdır?</summary>
+<summary><b>S36.</b> Hangi durumda doğruluk yanıltıcıdır? Hangi ölçüt kullanılmalıdır?</summary>
 
 **Dengesiz veride.** Ör. 1000 kişiden 10'u hasta; herkese "sağlam" diyen model %99 doğruluk alır ama hiçbir hastayı bulamaz (duyarlılık = 0). Bu durumda **duyarlılık, kesinlik, F1 ve ROC-AUC** kullanılmalıdır.
 
 </details>
 
 <details>
-<summary><b>S24.</b> Kanser taramasında ve spam filtresinde hangi ölçüt daha önemlidir? Neden?</summary>
+<summary><b>S37.</b> Kanser taramasında ve spam filtresinde hangi ölçüt daha önemlidir? Neden?</summary>
 
 **Kanser:** Duyarlılık (recall) — hasta kaçırmak (FN) hayati. **Spam:** Kesinlik (precision) — önemli e-postayı spam'e atmak (FP) kabul edilemez.
 
 </details>
 
 <details>
-<summary><b>S25.</b> Aşırı öğrenme nedir? Nasıl önlenir?</summary>
+<summary><b>S38.</b> Aşırı öğrenme nedir? Nasıl önlenir?</summary>
 
 Modelin eğitim verisini (gürültü dahil) ezberleyip yeni veride başarısız olmasıdır: eğitim hatası düşük, test hatası yüksek. Önlemler: daha basit model / optimum karmaşıklık, daha fazla veri, **çapraz doğrulama (k-fold)**, özellik seçimi, budama (karar ağaçlarında), düzenlileştirme.
 
 </details>
 
 <details>
-<summary><b>S26.</b> KNN algoritması nasıl çalışır?</summary>
+<summary><b>S39.</b> KNN algoritması nasıl çalışır?</summary>
 
 Eğitim aşaması yoktur (örnek tabanlı). Test örneğinin eğitim kümesindeki tüm örneklere **Öklid uzaklığı** hesaplanır, **en yakın K** örnek seçilir, bunlar arasında **en çok bulunan sınıf** test örneğinin sınıfı olur.
+
+</details>
+
+<details>
+<summary><b>S40.</b> (Sayısal) Skorlar ve gerçek sınıflar: 0.95 P, 0.85 P, 0.78 N, 0.70 P, 0.62 P, 0.55 N, 0.48 P, 0.40 N, 0.30 N, 0.15 N. ROC noktalarını bulup AUC'yi hesaplayınız.</summary>
+
+Skorları sırayla eşik yaparak (P → 0.2 yukarı, N → 0.2 sağa): (0,0) → (0,0.2) → (0,0.4) → (0.2,0.4) → (0.2,0.6) → (0.2,0.8) → (0.4,0.8) → (0.4,1) → (0.6,1) → (0.8,1) → (1,1). **AUC** = 0.2·0.4 + 0.2·0.8 + 0.6·1 = **0.84** (ya da 21/25 doğru sıralı P–N çifti). Bkz. Bölüm 6.10.
+
+</details>
+
+<details>
+<summary><b>S41.</b> Çok sınıflı karışıklık matrisinde kesinlik ve duyarlılık nasıl hesaplanır? Makro ve mikro ortalama farkı nedir?</summary>
+
+Satırlar gerçek, sütunlar tahmin ise bir sınıfın **duyarlılığı** = köşegen değeri / **satır** toplamı, **kesinliği** = köşegen değeri / **sütun** toplamı. **Makro ortalama** her sınıfın ölçütünü ayrı hesaplayıp eşit ağırlıkla ortalar (küçük sınıflar da önemsenir). **Mikro ortalama** tüm sınıfların TP/FP/FN'lerini toplayıp tek hesap yapar; tek etiketli problemlerde doğruluğa eşittir.
+
+</details>
+
+<details>
+<summary><b>S42.</b> Naive Bayes neden "naif"tir? Sıfır frekans problemi nedir?</summary>
+
+Sınıf verildiğinde **tüm özelliklerin birbirinden bağımsız** olduğunu varsayar ($P(x_1,\dots,x_n|c) = \prod P(x_i|c)$); gerçekte özellikler genelde ilişkilidir. Eğitimde bir özellik değeri bir sınıfla hiç görülmemişse o olasılık 0 olur ve tüm çarpımı sıfırlar; **Laplace düzeltmesi** (her sayıma 1 ekleme) ile çözülür.
 
 </details>
 
 ### ⚡ Nöronlar
 
 <details>
-<summary><b>S27.</b> Nöronlar arasında iletişim nasıl gerçekleşir?</summary>
+<summary><b>S43.</b> Nöronlar arasında iletişim nasıl gerçekleşir?</summary>
 
 Nöron **içinde** elektriksel (aksiyon potansiyeli), nöronlar **arasında** kimyasaldır: aksiyon potansiyeli akson ucuna gelir → Ca²⁺ kanalları açılır → veziküller nörotransmitteri sinaps aralığına salar → nörotransmitter son-sinaptik nöronun reseptörlerine bağlanır → iyon kanalları açılır → uyarıcı (EPSP) veya baskılayıcı (IPSP) etki → toplam eşiği aşarsa sonraki nöron ateşlenir → nörotransmitter geri alınır/parçalanır.
 
 </details>
 
 <details>
-<summary><b>S28.</b> "Hepsi ya da hiç" ilkesi nedir? Beyin uyaranın şiddetini nasıl anlar?</summary>
+<summary><b>S44.</b> "Hepsi ya da hiç" ilkesi nedir? Beyin uyaranın şiddetini nasıl anlar?</summary>
 
 Uyarı eşiği (−55 mV) aşmazsa aksiyon potansiyeli oluşmaz; aşarsa her zaman aynı büyüklükte oluşur. Bu yüzden şiddet sinyalin büyüklüğüyle değil, **ateşleme frekansıyla** (güçlü uyaran = daha sık ateşleme) ve **ateşlenen nöron sayısıyla** kodlanır.
 
 </details>
 
 <details>
-<summary><b>S29.</b> Beyin dış dünyadan gelen veriyi nasıl algılar?</summary>
+<summary><b>S45.</b> Beyin dış dünyadan gelen veriyi nasıl algılar?</summary>
 
 Uyaran → **reseptörler** fiziksel enerjiyi elektrik sinyaline çevirir (**transdüksiyon**) → **duyusal nöronlar** sinyali omuriliğe/beyne taşır → **talamus** ilgili korteks bölgesine yönlendirir (koku hariç) → **duyusal korteks** anlamlandırır (algı) → bellek ve ilişki alanlarıyla karar verilir → **motor korteks** ve **motor nöronlar** ile kaslara tepki komutu gider. Algı, gelen veri (bottom-up) ile beklenti/deneyimin (top-down) birleşimidir.
 
 </details>
 
 <details>
-<summary><b>S30.</b> Biyolojik nöron ile yapay nöron arasındaki benzerlikleri açıklayınız.</summary>
+<summary><b>S46.</b> Biyolojik nöron ile yapay nöron arasındaki benzerlikleri açıklayınız.</summary>
 
 Dendrit → giriş ($x_i$); sinaps gücü → ağırlık ($w_i$); soma'da toplama → $\sum w_i x_i$; eşik potansiyeli → bias ve aktivasyon fonksiyonu; akson → çıkış ($y$); sinaptik plastisite (Hebb) → ağırlık güncelleme (öğrenme). Formül: $y = f(\sum w_i x_i + \theta)$, ör. sigmoid $f(x) = 1/(1+e^{-x})$.
+
+</details>
+
+<details>
+<summary><b>S47.</b> Tek katmanlı perceptron XOR problemini neden çözemez? Çözüm nedir?</summary>
+
+Perceptron girdi uzayını **tek bir doğru (hiperdüzlem)** ile ikiye ayırır; bu yüzden yalnızca **doğrusal ayrılabilir** problemleri (AND, OR) öğrenebilir. XOR'da (0,1) ve (1,0) bir sınıf, (0,0) ve (1,1) diğer sınıftır; bunları tek doğruyla ayırmak imkânsızdır (Minsky & Papert, 1969). Çözüm: **gizli katmanlı çok katmanlı perceptron (MLP)** ve **geri yayılım** ile eğitim — gizli katman iki doğru çizer, çıkış nöronu bunları birleştirir.
+
+</details>
+
+<details>
+<summary><b>S48.</b> (Sayısal) w₁ = 0.3, w₂ = 0.2, b = −0.1, η = 0.1, basamak aktivasyon (net > 0 → 1). x = (0, 1), hedef t = 0 için bir güncelleme adımı yapınız.</summary>
+
+net = 0.3·0 + 0.2·1 − 0.1 = **0.1** > 0 → y = 1; hata e = 0 − 1 = **−1**. Güncelleme: w₁ = 0.3 + 0.1·(−1)·0 = **0.3**, w₂ = 0.2 + 0.1·(−1)·1 = **0.1**, b = −0.1 + 0.1·(−1) = **−0.2**.
 
 </details>
 
@@ -1395,5 +2052,11 @@ Dendrit → giriş ($x_i$); sinaps gücü → ağırlık ($w_i$); soma'da toplam
 - Alpaydın, E. — *Introduction to Machine Learning*, MIT Press
 - Kandel, E. ve ark. — *Principles of Neural Science* (nöron, sinaps, algı)
 - Fawcett, T. — "An introduction to ROC analysis", *Pattern Recognition Letters*, 2006
+- Shortliffe, E. H., Buchanan, B. G. — "A model of inexact reasoning in medicine" (MYCIN güven faktörü), *Mathematical Biosciences*, 1975
+- Zadeh, L. A. — "Fuzzy sets", *Information and Control*, 1965; Mamdani, E. H., Assilian, S. — bulanık denetleyici, 1975
+- Pearl, J. — *Probabilistic Reasoning in Intelligent Systems* (Bayes ağları), 1988
+- Forgy, C. — Rete algoritması, *Artificial Intelligence*, 1982
+- Yao, S. ve ark. — "ReAct: Synergizing Reasoning and Acting in Language Models", 2022
+- Minsky, M., Papert, S. — *Perceptrons*, 1969 (XOR problemi)
 
-> 🍀 **Sınavda başarılar!** Son tekrar için [Bölüm 9](#9-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)'u ve ACO'daki [elle çözülmüş örneği](#17-elle-çözülmüş-örnek-sınavda-bu-tarz-soru-gelebilir) mutlaka gözden geçir.
+> 🍀 **Sınavda başarılar!** Son tekrar için [Bölüm 10](#10-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)'u ve ACO'daki [elle çözülmüş örneği](#17-elle-çözülmüş-örnek-sınavda-bu-tarz-soru-gelebilir) mutlaka gözden geçir.
