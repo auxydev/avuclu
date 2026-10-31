@@ -1,11 +1,11 @@
 # 🧠 Yapay Zekâ — Sınav Çalışma Notları
 
 > Hocanın derste "buradan soru çıkacak" dediği konular + yüklenen iki PDF'in (*7-YapayZeka ilk* ve *Makine Öğrenmesine Giriş — Banu Diri*) özeti.
-> **⭐ En önemli konu: Karınca Kolonisi Optimizasyonu** — bu yüzden en detaylı bölüm o, elle çözülmüş sayısal örnek de içeriyor.
+> **⭐ En önemli konu: Karınca Kolonisi Optimizasyonu** — bu yüzden en detaylı bölüm o.
 >
-> 🆕 **Eklenenler:** Ayrı bir **[Yapay Zekâda Çıkarım](#4-yapay-zekâda-çıkarım-inference-nasıl-yapılır)** bölümü (mantık kuralları, adım adım ileri/geri zincirleme, çakışma çözümü, CF / Bayes / bulanık çıkarım hesapları) · ACS–MMAS formülleri · ateşböceği elle örneği · ajan ortam özellikleri, ReAct izi, agentic desenler · KNN ve Naive Bayes elle örnekleri, çok sınıflı karışıklık matrisi, **ROC'u elle çizme** · aktivasyon fonksiyonları, **perceptron elle eğitimi ve XOR** · 18 yeni soru.
+> 📝 Notlar **formül ve sayısal hesap içermez**; kavramlar, karşılaştırmalar ve sınavda sorulabilecek kilit bilgiler üzerine kuruludur.
 >
-> Tüm görseller `images/` klasöründe; çoğu gerçek bir simülasyon/hesaplama çalıştırılarak üretildi (ör. ACO gerçekten 25 şehirlik bir problemi çözüyor, ROC eğrileri gerçek modellerden hesaplandı).
+> Tüm görseller `images/` klasöründe; çoğu gerçek bir simülasyon çalıştırılarak üretildi (ör. ACO gerçekten 25 şehirlik bir problemi çözüyor, ROC eğrileri gerçek modellerden hesaplandı).
 
 ---
 
@@ -20,7 +20,7 @@
 7. [⚡ Nöronların Haberleşmesi ve Beynin Veriyi Algılaması](#7-nöronların-haberleşmesi-ve-beynin-veriyi-algılaması)
 8. [📘 Ek: Temel YZ Kavramları (PDF 1 Özeti)](#8-ek-temel-yz-kavramları-pdf-1-özeti)
 9. [🔗 Konular Arası Bağlantılar (Büyük Resim)](#9-konular-arası-bağlantılar-büyük-resim)
-10. [📝 Sınav Öncesi Hızlı Tekrar + Formül Kağıdı](#10-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)
+10. [📝 Sınav Öncesi Hızlı Tekrar](#10-sınav-öncesi-hızlı-tekrar)
 11. [❓ Olası Sınav Soruları ve Cevapları](#11-olası-sınav-soruları-ve-cevapları)
 
 ---
@@ -67,13 +67,13 @@ Yuva ile yiyecek arasına biri kısa biri uzun iki köprü konur. Başta karınc
 
 | Gerçek karınca kolonisi | ACO algoritmasındaki karşılığı |
 |---|---|
-| Karınca | Bir çözüm (tur) inşa eden basit ajan |
-| Yuva → yiyecek yolu | Problemin bir çözümü (ör. TSP turu) |
-| Yolun uzunluğu | Çözümün maliyeti (tur uzunluğu $L_k$) |
-| Yere bırakılan feromon | Kenarlardaki sayısal değer $\tau_{ij}$ |
-| Feromonun buharlaşması | $\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij}$ |
-| Karıncanın gözüyle gördüğü yakınlık | Sezgisel bilgi $\eta_{ij} = 1/d_{ij}$ |
-| Kısa yolda daha çok feromon birikmesi | Kısa tura $Q/L_k$ kadar **daha fazla** feromon bırakılması |
+| Karınca | Bir çözüm (tur) inşa eden **basit ajan** |
+| Yuva → yiyecek yolu | Problemin bir **çözümü** (ör. TSP turu) |
+| Yolun uzunluğu | Çözümün **maliyeti** (tur uzunluğu) |
+| Yere bırakılan feromon | Graf kenarlarında tutulan **feromon değeri** → koloninin **ortak hafızası** |
+| Feromonun buharlaşması | Her iterasyonda tüm kenarlardaki feromonun **belli bir oranda azaltılması** |
+| Karıncanın yakını görmesi | **Sezgisel bilgi / görünürlük**: yakın şehir daha cazip |
+| Kısa yolda daha çok feromon birikmesi | Kısa tur yapan karıncanın **daha çok** feromon bırakması |
 | Karıncanın aynı yere iki kez gitmemesi | **Tabu listesi** (ziyaret edilen şehirlerin hafızası) |
 
 > ⚠️ Yapay karıncaların gerçeklerden farkı: **hafızaları vardır** (tabu listesi), **sezgisel bilgi** (mesafe) kullanırlar ve feromonu genelde **tur bittikten sonra**, turun kalitesine göre bırakırlar.
@@ -82,63 +82,62 @@ Yuva ile yiyecek arasına biri kısa biri uzun iki köprü konur. Başta karınc
 
 ![ACO akış şeması](images/aco_akis_semasi.png)
 
-**Sözde kod (pseudocode):**
-
 ```text
-1. Parametreleri belirle (m, α, β, ρ, Q) ve tüm kenarlara τ₀ feromonu ata
+1. Parametreleri belirle (karınca sayısı, α, β, buharlaşma oranı ρ)
+   ve tüm kenarlara EŞİT başlangıç feromonu ver
 2. TEKRARLA (durma kriteri sağlanana kadar):
-   a. m karıncayı rastgele şehirlere yerleştir
+   a. Karıncaları rastgele şehirlere yerleştir
    b. HER karınca için:
         Tüm şehirler gezilene kadar:
-            Ziyaret edilmemiş şehirler arasından OLASILIK KURALI ile birini seç
+            Ziyaret edilmemiş şehirlerden birini GEÇİŞ KURALI ile (feromon + yakınlık) olasılıksal seç
             Seçilen şehri tabu listesine ekle
-        Başlangıç şehrine dön, tur uzunluğu L_k'yı hesapla
-   c. En iyi turu güncelle
-   d. BUHARLAŞMA:      τ_ij ← (1 − ρ) · τ_ij          (tüm kenarlar)
-   e. FEROMON BIRAKMA: τ_ij ← τ_ij + Σ_k Δτ_ij^k      (Δτ = Q / L_k)
+        Başlangıç şehrine dön, turun uzunluğunu kaydet
+   c. Şimdiye kadarki en iyi turu güncelle
+   d. BUHARLAŞMA: tüm kenarlardaki feromonu azalt
+   e. FEROMON BIRAKMA: her karınca kendi turunun kenarlarına feromon ekler (tur ne kadar kısaysa o kadar çok)
 3. En iyi turu döndür
 ```
 
-## 1.5 Formüller (Ezberlenmesi Gereken 3 Formül)
+**Durma kriterleri:** maksimum iterasyon sayısına ulaşmak · belirli sayıda iterasyon boyunca **iyileşme olmaması** · hedeflenen çözüm kalitesine ulaşmak · süre sınırı · tüm karıncaların aynı turu üretmesi (durgunluk).
 
-### ① Geçiş Olasılığı (Durum Geçiş Kuralı)
+## 1.5 Algoritmanın Üç Temel Mekanizması
 
-$k$. karıncanın $i$ şehrindeyken $j$ şehrine gitme olasılığı:
+### ① Geçiş Kuralı — Karınca bir sonraki şehri nasıl seçer?
 
-$$
-p_{ij}^{k} = \frac{[\tau_{ij}]^{\alpha}\cdot[\eta_{ij}]^{\beta}}{\sum_{l \in N_i^k}[\tau_{il}]^{\alpha}\cdot[\eta_{il}]^{\beta}} \qquad (j \in N_i^k \text{ ise; değilse } 0)
-$$
+Karınca, henüz **ziyaret etmediği** şehirler arasından seçim yaparken **iki bilgiye** bakar:
+
+| Bilgi | Anlamı | Benzetme |
+|---|---|---|
+| **Feromon (τ)** | O kenarı daha önce kaç iyi karınca kullanmış? | **Geçmiş deneyim** — koloninin hafızası |
+| **Sezgisel bilgi (η)** | O şehir ne kadar yakın? (mesafe arttıkça azalır) | **Anlık, açgözlü bilgi** — gözle görülen |
+
+- İki bilgi ne kadar yüksekse o şehrin **seçilme olasılığı** o kadar yüksektir.
+- **α** feromonun, **β** mesafenin ne kadar önemli olduğunu belirler.
+- Seçim **kesin değil, olasılıksaldır** → **rulet tekerleği seçimi**: her aday, olasılığı kadar büyük bir dilime sahiptir; tekerlek rastgele çevrilir. En cazip şehir **çoğunlukla** seçilir ama **her zaman** değil → kötü görünen yollar da arada denenir (**keşif**).
 
 ### ② Buharlaşma
 
-$$
-\tau_{ij} \leftarrow (1-\rho)\cdot\tau_{ij}
-$$
+Her iterasyon sonunda **tüm** kenarlardaki feromon **ρ oranında azaltılır.**
+- Kötü / kullanılmayan yolların feromonu zamanla silinir → koloni onları **unutur**.
+- İlk bulunan (belki kötü) çözüme **kilitlenmeyi (erken yakınsama)** önler.
 
 ### ③ Feromon Bırakma
 
-$$
-\tau_{ij} \leftarrow \tau_{ij} + \sum_{k=1}^{m}\Delta\tau_{ij}^{k}, \qquad
-\Delta\tau_{ij}^{k} =
-\begin{cases}
-\dfrac{Q}{L_k} & k.\ \text{karınca } (i,j) \text{ kenarını kullandıysa}\\[4pt]
-0 & \text{aksi halde}
-\end{cases}
-$$
+Her karınca turundaki kenarlara feromon ekler; **miktar tur uzunluğuyla ters orantılıdır:**
+- **Kısa tur → çok feromon**, uzun tur → az feromon
+- Birden fazla karıncanın kullandığı kenarda feromon **üst üste** birikir
+- Sonuç: iyi turların kenarları iterasyonlar ilerledikçe **daha cazip** hâle gelir → **pozitif geri besleme**
 
-(② ve ③ çoğu kaynakta tek formülde birleştirilir: $\tau_{ij} \leftarrow (1-\rho)\tau_{ij} + \sum_k \Delta\tau_{ij}^k$)
-
-| Sembol | Anlamı |
+| Kavram / Sembol | Anlamı |
 |---|---|
-| $\tau_{ij}$ | $i$–$j$ kenarındaki **feromon miktarı** (koloninin "öğrendiği" bilgi, *geçmiş deneyim*) |
-| $\eta_{ij} = 1/d_{ij}$ | **Sezgisel bilgi / görünürlük** — yakın şehir daha cazip (*anlık açgözlü bilgi*) |
-| $\alpha$ | Feromonun **önem katsayısı** |
-| $\beta$ | Sezgisel bilginin (mesafenin) **önem katsayısı** |
-| $\rho$ | **Buharlaşma oranı** $(0 < \rho \le 1)$ |
-| $Q$ | Bırakılan feromon miktarı sabiti |
-| $L_k$ | $k$. karıncanın tur uzunluğu → **kısa tur = çok feromon** |
-| $m$ | Karınca sayısı (genelde şehir sayısı kadar) |
-| $N_i^k$ | $k$. karıncanın $i$'den gidebileceği **henüz ziyaret edilmemiş** şehirler (tabu listesi dışındakiler) |
+| **τ (tau)** | Kenardaki feromon miktarı |
+| **η (eta)** | Sezgisel bilgi (yakınlık / görünürlük) |
+| **α (alfa)** | Feromonun önem derecesi |
+| **β (beta)** | Sezgisel bilginin (mesafenin) önem derecesi |
+| **ρ (ro)** | Buharlaşma oranı (0 ile 1 arası) |
+| **Q** | Bırakılan feromon miktarını ölçekleyen sabit |
+| **m** | Karınca sayısı (genelde şehir sayısı kadar) |
+| **Tabu listesi** | Karıncanın gittiği şehirlerin listesi → aynı şehre tekrar gidilmez |
 
 ## 1.6 Parametrelerin Etkisi
 
@@ -154,88 +153,44 @@ $$
 >
 > **Keşif (exploration) ↔ Sömürü (exploitation) dengesi:** Feromonu takip etmek *sömürü*, olasılıksal seçim ve buharlaşma *keşif* sağlar.
 
-Aşağıdaki grafik aynı durumda (A şehrindeki karınca, örnekteki 1. iterasyon sonrası feromonlarla) farklı α–β değerlerinin seçim olasılıklarını nasıl değiştirdiğini gösteriyor:
+## 1.7 Keşif–Sömürü Dengesi, Durgunluk ve ACO'yu Bir Probleme Uygulamak
 
-![α ve β etkisi](images/aco_alfa_beta.png)
+### Keşif (Exploration) ↔ Sömürü (Exploitation)
 
-## 1.7 Elle Çözülmüş Örnek (Sınavda Bu Tarz Soru Gelebilir!)
+| | **Keşif** | **Sömürü** |
+|---|---|---|
+| Ne demek? | **Yeni**, denenmemiş yolları aramak | Bilinen **iyi** yolları kullanmak |
+| ACO'da kim sağlar? | Olasılıksal (rulet) seçim, **buharlaşma**, ACS'deki **yerel güncelleme**, MMAS'ın **alt sınırı** | **Feromonu takip etmek**, büyük α, **elitizm**, ACS'deki **q₀** kuralı |
+| Fazlası olursa | Rastgele arama → yakınsamaz | **Erken yakınsama** → yerel optimuma takılır |
 
-**Problem:** 4 şehirli TSP. Mesafeler:
+> 🎯 İyi bir meta-sezgiselin sırrı bu ikisi arasındaki **dengedir.** Başta keşif, sona doğru sömürü ağırlıklı olmalıdır.
 
-| | A | B | C | D |
-|---|---|---|---|---|
-| **A** | – | 2 | 5 | 4 |
-| **B** | 2 | – | 3 | 6 |
-| **C** | 5 | 3 | – | 2 |
-| **D** | 4 | 6 | 2 | – |
+### Durgunluk (Stagnation)
 
-**Parametreler:** $\alpha = 1,\ \beta = 2,\ \rho = 0.5,\ Q = 10,\ \tau_0 = 1$, $m = 2$ karınca (ikisi de A'dan başlıyor).
+**Tüm karıncaların aynı (çoğu zaman en iyi olmayan) turu üretmeye başlamasıdır.** Feromon tek bir yolda o kadar birikir ki başka yol seçilmez.
+- **Nedenleri:** α çok büyük · buharlaşma (ρ) çok küçük · aşırı elitizm
+- **Önlemleri:** MMAS'taki feromon **alt–üst sınırları** · feromonu **yeniden başlatma** · ACS'deki **yerel güncelleme** · buharlaşmayı artırmak
 
-![4 şehir örneği](images/aco_ornek_4sehir.png)
+### ACO'yu Yeni Bir Probleme Uygulamak İçin Gerekenler
 
-### Adım 1 — Karınca 1, A şehrinde: nereye gitsin?
+1. **Problemi graf olarak temsil et** — düğümler (şehir, iş, makine) ve kenarlar (geçişler)
+2. **Kısıtları tanımla** — tabu listesi, araç kapasitesi, zaman pencereleri
+3. **Sezgisel bilgiyi tanımla** — TSP'de yakınlık; çizelgelemede iş süresinin kısalığı; ağ yönlendirmede gecikme
+4. **Çözüm kalitesi ölçüsünü tanımla** — tur uzunluğu, toplam maliyet, toplam süre
+5. **Feromon güncelleme stratejisini seç** — AS, Elitist, ACS, MMAS
+6. **Parametreleri ve durma kriterini belirle**
 
-Ziyaret edilmemiş şehirler: B, C, D. Başta tüm $\tau = 1$ olduğu için sadece mesafe belirleyici.
-
-| Aday | $d$ | $\eta = 1/d$ | $\tau^{\alpha}$ | $\eta^{\beta}$ | $\tau^{\alpha}\cdot\eta^{\beta}$ | **Olasılık** |
-|---|---|---|---|---|---|---|
-| B | 2 | 0.500 | 1 | 0.2500 | 0.2500 | 0.2500 / 0.3525 = **0.709** |
-| C | 5 | 0.200 | 1 | 0.0400 | 0.0400 | 0.0400 / 0.3525 = **0.113** |
-| D | 4 | 0.250 | 1 | 0.0625 | 0.0625 | 0.0625 / 0.3525 = **0.177** |
-| | | | | **Toplam** | **0.3525** | **1.000** |
-
-**Rulet tekerleği seçimi:** Kümülatif aralıklar B: [0, 0.709), C: [0.709, 0.822), D: [0.822, 1). Rastgele sayı **r = 0.45** → **B seçilir**.
-
-> ⚠️ Karınca en olası şehri değil, **olasılığa göre rastgele** seçer. Bu sayede kötü görünen yollar da arada denenir (keşif).
-
-### Adım 2 — Karınca 1, B şehrinde
-
-Kalanlar: C ($d=3$), D ($d=6$) → $\eta^2$: $1/9 = 0.111$ ve $1/36 = 0.028$ → $P(C) = 0.111/0.139 = \mathbf{0.80}$, $P(D) = \mathbf{0.20}$. r = 0.30 → **C**. Sonra mecburen **D**, sonra **A**'ya dönüş.
-
-> **Karınca 1'in turu:** A → B → C → D → A, &nbsp; $L_1 = 2 + 3 + 2 + 4 = \mathbf{11}$
-
-### Adım 3 — Karınca 2
-
-A'da r = 0.75 → (0.709 ≤ 0.75 < 0.822) → **C** seçilir. C'de kalanlar B ($\eta^2 = 0.111$), D ($\eta^2 = 0.25$) → $P(B) = 0.31$, $P(D) = 0.69$; r = 0.20 → **B**. Sonra D, sonra A.
-
-> **Karınca 2'nin turu:** A → C → B → D → A, &nbsp; $L_2 = 5 + 3 + 6 + 4 = \mathbf{18}$
-
-### Adım 4 — Feromon güncelleme
-
-**(a) Buharlaşma:** tüm kenarlar $\tau = (1 - 0.5)\cdot 1 = 0.5$
-
-**(b) Bırakma:** $\Delta\tau^1 = Q/L_1 = 10/11 = 0.909$ &nbsp;&nbsp; $\Delta\tau^2 = 10/18 = 0.556$
-
-| Kenar | Karınca 1 kullandı mı? | Karınca 2 kullandı mı? | Yeni $\tau$ |
-|---|---|---|---|
-| A–B | ✔ (+0.909) | ✘ | 0.5 + 0.909 = **1.409** |
-| A–C | ✘ | ✔ (+0.556) | 0.5 + 0.556 = **1.056** |
-| A–D | ✔ (+0.909) | ✔ (+0.556) | 0.5 + 0.909 + 0.556 = **1.965** |
-| B–C | ✔ (+0.909) | ✔ (+0.556) | **1.965** |
-| B–D | ✘ | ✔ (+0.556) | **1.056** |
-| C–D | ✔ (+0.909) | ✘ | **1.409** |
-
-(Simetrik TSP'de $\tau_{ij} = \tau_{ji}$.)
-
-### Adım 5 — Öğrenme gerçekleşti mi? (2. iterasyonda A'dan seçim olasılıkları)
-
-| Aday | $\tau\cdot\eta^2$ | 1. iterasyon olasılığı | **2. iterasyon olasılığı** |
-|---|---|---|---|
-| B | 1.409 × 0.25 = 0.352 | 0.709 | **0.681** |
-| C | 1.056 × 0.04 = 0.042 | 0.113 | **0.082** ⬇ |
-| D | 1.965 × 0.0625 = 0.123 | 0.177 | **0.237** ⬆ |
-
-✅ En iyi tur **A–B–C–D–A (11)** — bu tur A'dan **B** veya (ters yönde) **D** ile başlar. Bu iki kenarın toplam olasılığı **0.886 → 0.918**'e çıktı; kötü turun kenarı **A–C**'nin olasılığı ise **0.113 → 0.082**'ye düştü. Yani koloni **kısa turu "öğrenmeye" başladı.** (11 gerçekten optimumdur: 4 şehirde sadece 3 farklı tur var: 11, 15, 18.)
+> 💡 **Statik vs dinamik problemler:** Mesafeler değişmiyorsa (klasik TSP) problem statiktir. Ağ trafiği gibi **sürekli değişen** problemlerde ACO, feromonun sürekli güncellenmesi sayesinde **kendiliğinden uyum sağlar** (AntNet). Bu, ACO'nun en güçlü yanlarından biridir.
 
 ## 1.8 Gerçek Simülasyon: 25 Şehirli TSP
 
-Aşağıdaki görsel, yukarıdaki formüllerle yazılmış gerçek bir ACO programının çıktısı (m = 25, α = 1, β = 3, ρ = 0.5, Q = 100). **Mavi çizgilerin kalınlığı = feromon miktarı.**
+Aşağıdaki görsel, gerçek bir ACO programının 25 şehirli bir problemdeki çıktısı. **Mavi çizgilerin kalınlığı = feromon miktarı.**
 
 ![ACO TSP evrimi](images/aco_tsp_evrim.png)
 
-- **İterasyon 1:** Feromon her yere dağınık → turlar karmaşık (536.5)
-- **İterasyon 10:** Feromon iyi kenarlarda yoğunlaşmaya başladı (426.6)
-- **İterasyon 120:** Feromon neredeyse sadece en iyi turun üzerinde (425.6) → koloni **yakınsadı**
+- **İlk iterasyon:** Feromon her yere dağınık → turlar karmaşık ve uzun
+- **Birkaç iterasyon sonra:** Feromon iyi kenarlarda yoğunlaşmaya başladı
+- **Son iterasyonlar:** Feromon neredeyse sadece en iyi turun üzerinde → koloni **yakınsadı**
 
 ![ACO yakınsama](images/aco_yakinsama.png)
 
@@ -246,41 +201,11 @@ Aşağıdaki görsel, yukarıdaki formüllerle yazılmış gerçek bir ACO progr
 | **Ant System (AS)** | Dorigo, 1992/1996 | İlk sürüm; **tüm karıncalar** feromon bırakır |
 | **Elitist AS** | Dorigo, 1996 | Şimdiye kadarki **en iyi tura ekstra** feromon eklenir |
 | **Rank-based AS** | Bullnheimer ve ark., 1999 | Karıncalar sıralanır, iyi olanlar daha çok feromon bırakır |
-| **Ant Colony System (ACS)** | Dorigo & Gambardella, 1997 | $q_0$ olasılıkla **en iyi kenarı doğrudan seçer** (sömürü), yoksa olasılık kuralı; **yerel feromon güncelleme** (geçilen kenarın feromonu azaltılır → keşif); sadece en iyi karınca global güncelleme yapar |
-| **MAX-MIN AS (MMAS)** | Stützle & Hoos, 2000 | Feromon $[\tau_{min}, \tau_{max}]$ aralığında **sınırlandırılır** → durgunluk önlenir; sadece en iyi karınca feromon bırakır |
+| **Ant Colony System (ACS)** | Dorigo & Gambardella, 1997 | q₀ olasılıkla **en iyi kenarı doğrudan seçer** (sömürü), yoksa olasılık kuralı; **yerel feromon güncelleme** (geçilen kenarın feromonu azaltılır → keşif); sadece en iyi karınca global güncelleme yapar |
+| **MAX-MIN AS (MMAS)** | Stützle & Hoos, 2000 | Feromon bir **alt ve üst sınır** arasında tutulur → durgunluk önlenir; sadece en iyi karınca feromon bırakır |
 | **AntNet** | Di Caro & Dorigo, 1998 | Bilgisayar ağlarında **dinamik yönlendirme (routing)** |
 
-### Çeşitlerin Formülleri (AS'den farkları)
-
-**Elitist AS** — en iyi tura ($T^{bs}$, *best-so-far*) $e$ kat ekstra feromon:
-
-$$
-\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij} + \sum_{k}\Delta\tau_{ij}^{k} + e\cdot\Delta\tau_{ij}^{bs}, \qquad \Delta\tau_{ij}^{bs} = \frac{Q}{L_{bs}}\ \ ((i,j) \in T^{bs}\text{ ise})
-$$
-
-**Ant Colony System (ACS)** — üç fark:
-
-**① Sözde-rastgele orantılı kural** (*pseudo-random proportional rule*): $q \in [0,1]$ rastgele sayı çekilir.
-
-$$
-j = \begin{cases} \arg\max_{l \in N_i^k} \lbrace \tau_{il}\,\eta_{il}^{\beta} \rbrace & q \le q_0 \quad \text{(sömürü: en iyi kenarı doğrudan seç)}\\ \text{AS olasılık kuralı } p_{ij}^k & q > q_0 \quad \text{(keşif)} \end{cases}
-$$
-
-**② Yerel feromon güncelleme:** Karınca bir kenardan **geçer geçmez** o kenarın feromonunu **azaltır** (sonraki karıncalar başka yollar denesin):
-
-$$
-\tau_{ij} \leftarrow (1-\xi)\,\tau_{ij} + \xi\,\tau_0 \qquad (\xi \approx 0.1)
-$$
-
-**③ Global güncelleme:** İterasyon sonunda **sadece en iyi tur** güncellenir: $\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij} + \rho\,\Delta\tau_{ij}^{bs}$, $\ \Delta\tau_{ij}^{bs} = 1/L_{bs}$
-
-**MAX-MIN AS (MMAS)** — sadece en iyi karınca bırakır ve sonuç sınırlandırılır:
-
-$$
-\tau_{ij} \leftarrow \Big[(1-\rho)\,\tau_{ij} + \Delta\tau_{ij}^{best}\Big]_{\tau_{min}}^{\tau_{max}}
-$$
-
-(Başlangıçta tüm kenarlar $\tau_{max}$'a ayarlanır → ilk iterasyonlarda geniş keşif.)
+> 🧠 **Çeşitleri kolay hatırlama:** Hepsi aynı soruya farklı cevap verir — *"Feromonu KİM bırakacak ve NE KADAR?"* AS: herkes · Elitist: herkes + en iyiye bonus · Rank: sıraya göre · ACS / MMAS: sadece en iyi (MMAS ayrıca sınır koyar, ACS geçerken feromonu azaltır).
 
 ## 1.10 Gerçek Dünya Uygulama Alanları
 
@@ -306,35 +231,29 @@ $$
 | Esnek: farklı problemlere uyarlanabilir | Büyük problemlerde hesaplama maliyeti yüksek olabilir |
 | Sağlam (robust): tek karınca hatası sonucu bozmaz | Olasılıksal → her çalıştırmada farklı sonuç |
 
-## 1.12 Kısa Python Kodu
+## 1.12 Sürü Zekâsının Temel İlkeleri (ACO ve Ateşböceği İçin Ortak)
 
-```python
-import numpy as np
+**Sürü zekâsı** (*Swarm Intelligence*): Merkezi bir lider olmadan, **basit kurallara uyan çok sayıda bireyin** etkileşiminden **akıllı toplu davranışın** ortaya çıkmasıdır (*öz-örgütlenme / self-organization*, *ortaya çıkan davranış / emergence*).
 
-def aco_tsp(D, m=20, alpha=1, beta=3, rho=0.5, Q=100, iters=100):
-    n = len(D)
-    eta = 1 / (D + np.eye(n))          # sezgisel bilgi (köşegende 0'a bölmeyi önle)
-    tau = np.ones((n, n))              # başlangıç feromonu τ0 = 1
-    best_tour, best_len = None, np.inf
-    for _ in range(iters):
-        tours = []
-        for _ in range(m):                              # her karınca
-            tour = [np.random.randint(n)]
-            while len(tour) < n:                        # tüm şehirler gezilene kadar
-                i = tour[-1]
-                p = (tau[i] ** alpha) * (eta[i] ** beta)
-                p[tour] = 0                             # tabu listesi
-                tour.append(np.random.choice(n, p=p / p.sum()))   # rulet seçimi
-            L = sum(D[tour[k], tour[(k + 1) % n]] for k in range(n))
-            tours.append((tour, L))
-            if L < best_len: best_tour, best_len = tour, L
-        tau *= (1 - rho)                                # buharlaşma
-        for tour, L in tours:                           # feromon bırakma
-            for k in range(n):
-                a, b = tour[k], tour[(k + 1) % n]
-                tau[a, b] += Q / L; tau[b, a] += Q / L
-    return best_tour, best_len
-```
+**Öz-örgütlenmenin 4 bileşeni** (Bonabeau ve ark.):
+
+| Bileşen | ACO'daki karşılığı |
+|---|---|
+| **Pozitif geri besleme** | Çok feromon → çok karınca → daha çok feromon |
+| **Negatif geri besleme** | Buharlaşma, yiyeceğin tükenmesi |
+| **Rastgelelik (dalgalanma)** | Olasılıksal yol seçimi → yeni yollar keşfedilir |
+| **Çoklu etkileşim** | Karıncaların feromon üzerinden birbirini etkilemesi |
+
+**Sürü sistemlerinin özellikleri:** Dağıtık (merkezi kontrol yok) · Sağlam (birkaç birey hata yapsa da sistem çalışır) · Esnek (ortam değişince uyum sağlar) · Ölçeklenebilir · Basit bireyler, karmaşık sonuç.
+
+**Diğer önemli sürü / doğa esinli algoritmalar:**
+
+| Algoritma | İlham | Geliştiren |
+|---|---|---|
+| **Parçacık Sürü Optimizasyonu (PSO)** | Kuş ve balık sürüleri | Kennedy & Eberhart, 1995 |
+| **Yapay Arı Kolonisi (ABC)** | Bal arılarının yiyecek arama davranışı | **Derviş Karaboğa** (Erciyes Üniversitesi), 2005 |
+| **Gri Kurt Optimizasyonu (GWO)** | Kurt sürüsünün av hiyerarşisi | Mirjalili, 2014 |
+| **Genetik Algoritma** (*sürü değil, evrimsel*) | Doğal seçilim, çaprazlama, mutasyon | Holland, 1970'ler |
 
 ---
 
@@ -352,48 +271,33 @@ def aco_tsp(D, m=20, alpha=1, beta=3, rho=0.5, Q=100, iters=100):
 
 - Ateşböcekleri, karınlarındaki kimyasal reaksiyonla **ışık yanıp söndürür** (eş bulma, av çekme, uyarı amaçlı).
 - **Parlak** olan ateşböceği diğerlerini **daha çok çeker.**
-- Işık, **mesafe arttıkça azalır** (ters kare yasası $I \propto 1/r^2$) ve **hava tarafından emilir** → uzaktaki ateşböceği sönük görünür.
+- Işık, **mesafe arttıkça azalır** (ters kare yasası: mesafe iki katına çıkınca ışık dörtte birine düşer) ve **hava tarafından emilir** → uzaktaki ateşböceği sönük görünür.
 
 ## 2.3 Üç İdealize Kural (Yang)
 
 1. **Tüm ateşböcekleri tek cinsiyetlidir** → herhangi bir ateşböceği herhangi birini çekebilir.
 2. **Çekicilik parlaklıkla orantılıdır** ve **mesafe arttıkça azalır.** Daha **sönük** olan, daha **parlak** olana doğru hareket eder. Kendinden parlak kimse yoksa **rastgele** hareket eder.
-3. **Parlaklık, amaç fonksiyonunun değeriyle belirlenir** (maksimizasyonda $I \propto f(x)$) → **iyi çözüm = parlak ateşböceği.**
+3. **Parlaklık, amaç fonksiyonunun değeriyle belirlenir** (maksimizasyonda fonksiyon değeri büyük olan daha parlaktır) → **iyi çözüm = parlak ateşböceği.**
 
-## 2.4 Formüller
+## 2.4 Hareketin Mantığı
 
-**Işık şiddeti (mesafeye göre):**
+Sönük bir ateşböceği, kendinden **daha parlak** bir ateşböceği gördüğünde her adımda **iki hareketin toplamı** kadar yer değiştirir:
 
-$$
-I(r) = I_0\, e^{-\gamma r^2}
-$$
+| Bileşen | Ne yapar? | Görevi |
+|---|---|---|
+| **① Çekim hareketi** | Parlak olana **doğru** adım atar. Adımın büyüklüğü **çekiciliğe** bağlıdır: yakındaki parlak ateşböceği **güçlü**, uzaktaki **zayıf** çeker (çekicilik mesafeyle **üstel olarak** azalır) | **Sömürü** — iyi çözüme yaklaşmak |
+| **② Rastgele hareket** | Küçük, rastgele bir sapma ekler; zamanla küçültülür | **Keşif** — yerel optimuma takılmamak |
 
-**Çekicilik (attractiveness):**
-
-$$
-\beta(r) = \beta_0\, e^{-\gamma r^2}
-$$
-
-**İki ateşböceği arası mesafe (Öklid):**
-
-$$
-r_{ij} = \lVert x_i - x_j \rVert = \sqrt{\sum_{k=1}^{d}(x_{i,k} - x_{j,k})^2}
-$$
-
-**Hareket denklemi** ($i$, kendinden parlak $j$'ye doğru gider):
-
-$$
-x_i^{t+1} = x_i^{t} + \underbrace{\beta_0\, e^{-\gamma r_{ij}^2}\,(x_j^t - x_i^t)}_{\text{çekim terimi}} + \underbrace{\alpha\,\epsilon_i^t}_{\text{rastgelelik terimi}}
-$$
+**Algılanan parlaklık iki sebeple azalır:** mesafe arttıkça ışık yayılarak zayıflar ve ortam (hava) ışığı **soğurur**. Bu yüzden bir ateşböceği uzaktaki çok parlak birini, yakındaki orta parlaklıktaki birinden **daha sönük** görebilir.
 
 ![Ateşböceği hareketi](images/ates_bocegi_hareket.png)
 
-| Sembol | Anlamı | Tipik değer |
+| Parametre | Anlamı | Etkisi |
 |---|---|---|
-| $\beta_0$ | $r = 0$'daki **maksimum çekicilik** | 1 |
-| $\gamma$ | **Işık soğurma katsayısı** — çekiciliğin mesafeyle ne kadar hızlı azaldığı | 0.01 – 100 (genelde 1) |
-| $\alpha$ | **Rastgelelik katsayısı** (keşif) — zamanla azaltılır: $\alpha_t = \alpha_0\,\theta^t$ | 0.2 – 0.5 |
-| $\epsilon_i$ | Rastgele vektör (Gauss veya düzgün dağılım) | — |
+| **β₀** | Mesafe sıfırken **en yüksek çekicilik** | Büyükse ateşböcekleri parlak olana hızla koşar |
+| **γ (gama)** | **Işık soğurma katsayısı** — çekiciliğin mesafeyle ne kadar hızlı azaldığı | Algoritmanın davranışını belirleyen **en önemli** parametre (aşağıda) |
+| **α (alfa)** | **Rastgelelik** katsayısı | Büyükse keşif artar; zamanla azaltılır ki sonunda optimum etrafında salınmasın |
+| **n** | Ateşböceği sayısı | Arttıkça çözüm kalitesi artar ama hesaplama **karesel** büyür |
 
 ### γ'nın Özel Durumları (Sınav Sorusu Olabilir!)
 
@@ -401,53 +305,29 @@ $$
 
 | Durum | Sonuç |
 |---|---|
-| **γ → 0** | Çekicilik sabit ($\beta = \beta_0$), her ateşböceği her yerden görülür → algoritma **Parçacık Sürü Optimizasyonu (PSO)**'na benzer |
-| **γ → ∞** | Çekicilik hemen sıfırlanır, kimse kimseyi görmez → **rastgele arama** |
+| **γ → 0** | Işık hiç soğurulmaz, çekicilik mesafeden bağımsız → herkes en parlağı görür → algoritma **Parçacık Sürü Optimizasyonu (PSO)**'na benzer |
+| **γ → ∞** | Işık hemen soğurulur, kimse kimseyi görmez → **rastgele arama** |
 | **γ orta** | Ateşböcekleri **alt gruplara ayrılır**, her grup bir tepeye toplanır → çok tepeli problemlerde güçlü |
-
-> 📝 Bazı kaynaklarda üstel fonksiyon yerine hesaplaması daha hızlı olan $\beta(r) = \dfrac{\beta_0}{1 + \gamma r^2}$ kullanılır. Davranış aynıdır: mesafe arttıkça çekicilik azalır.
-
-### ✍️ Elle Çözülmüş Örnek (Bir Hareket Adımı)
-
-**Problem:** $f(x, y) = -(x^2 + y^2)$ fonksiyonunu **maksimize** et (optimum: (0, 0), değeri 0). Parlaklık $I = f$.
-**Parametreler:** $\beta_0 = 1,\ \gamma = 0.1,\ \alpha = 0.2$, rastgele vektör $\epsilon = (0.1,\ -0.3)$
-
-| Ateşböceği | Konum | Parlaklık $f$ |
-|---|---|---|
-| $i$ | (4, 2) | −(16 + 4) = **−20** (sönük) |
-| $j$ | (1, 1) | −(1 + 1) = **−2** (parlak) |
-
-$I_j > I_i$ olduğundan **$i$, $j$'ye doğru hareket eder:**
-
-1. **Mesafe:** $r_{ij}^2 = (4-1)^2 + (2-1)^2 = 9 + 1 = \mathbf{10}$
-2. **Çekicilik:** $\beta = 1 \cdot e^{-0.1 \times 10} = e^{-1} = \mathbf{0.368}$
-3. **Çekim terimi:** $0.368 \times \big((1, 1) - (4, 2)\big) = 0.368 \times (-3,\ -1) = (\mathbf{-1.104},\ \mathbf{-0.368})$
-4. **Rastgelelik terimi:** $0.2 \times (0.1,\ -0.3) = (\mathbf{0.02},\ \mathbf{-0.06})$
-5. **Yeni konum:** $(4 - 1.104 + 0.02,\ \ 2 - 0.368 - 0.06) = (\mathbf{2.916},\ \mathbf{1.572})$
-6. **Yeni parlaklık:** $-(2.916^2 + 1.572^2) = -(8.50 + 2.47) \approx \mathbf{-10.98}$ ✅ (−20'den −10.98'e → **daha parlak**, optimuma yaklaştı)
-
-> 💡 γ = 0 olsaydı β = 1 olurdu ve $i$ doğrudan $j$'nin üstüne (1, 1)'e atlardı (+ rastgele adım). γ büyüdükçe uzaktaki ateşböceği daha az çekilir.
 
 ## 2.5 Algoritma Adımları
 
 ```text
-1. Amaç fonksiyonu f(x) tanımla; β0, γ, α ve n (ateşböceği sayısı) belirle
-2. n ateşböceğini arama uzayına RASTGELE yerleştir
-3. Her birinin parlaklığını hesapla: I_i = f(x_i)
-4. TEKRARLA (maks. iterasyon):
-     her i için:
-        her j için:
-           EĞER I_j > I_i İSE:              # j daha parlaksa
-               r_ij mesafesini hesapla
-               β = β0 · exp(−γ r_ij²)        # çekicilik
-               x_i'yi j'ye doğru hareket ettir (hareket denklemi)
-               I_i'yi yeniden hesapla
+1. Amaç fonksiyonunu tanımla; β₀, γ, α ve ateşböceği sayısını belirle
+2. Ateşböceklerini arama uzayına RASTGELE yerleştir
+3. Her birinin parlaklığını amaç fonksiyonuyla hesapla
+4. TEKRARLA (maksimum iterasyon):
+     her ateşböceği i için:
+        her ateşböceği j için:
+           EĞER j, i'den daha parlaksa:
+               aradaki mesafeyi ve buna göre çekiciliği bul
+               i'yi j'ye doğru hareket ettir (çekim + rastgele adım)
+               i'nin parlaklığını güncelle
      En parlak ateşböceği rastgele hareket eder
-     α'yı azalt, en iyi çözümü kaydet
+     Rastgeleliği azalt, en iyi çözümü kaydet
 5. En parlak ateşböceğini (en iyi çözümü) döndür
 ```
 
-**Karmaşıklık:** Her iterasyonda tüm çiftler karşılaştırılır → $O(n^2 \cdot t)$
+**Karmaşıklık:** Her iterasyonda her ateşböceği **diğer hepsiyle** karşılaştırılır → ateşböceği sayısı 2 katına çıkınca iş yükü yaklaşık **4 katına** çıkar (karesel karmaşıklık).
 
 ## 2.6 Simülasyon: 4 Tepeli Bir Fonksiyon
 
@@ -461,7 +341,7 @@ $I_j > I_i$ olduğundan **$i$, $j$'ye doğru hareket eder:**
 
 | ✅ Avantajlar | ❌ Dezavantajlar |
 |---|---|
-| Çok tepeli problemlerde **birden çok optimumu** aynı anda bulur | $O(n^2)$ — çok ateşböceğinde yavaş |
+| Çok tepeli problemlerde **birden çok optimumu** aynı anda bulur | Karesel karmaşıklık — çok ateşböceğinde yavaş |
 | Basit, az parametreli, kodlaması kolay | γ ve α ayarına duyarlı |
 | Yerel optimumdan kaçınma yeteneği iyi | Sabit α ile optimum etrafında salınım yapabilir |
 | PSO'yu özel durum olarak içerir (γ → 0) | Ayrık problemler için uyarlama gerekir |
@@ -616,31 +496,25 @@ Bu bölümün özeti tek tabloda:
 
 ## 4.2 Mantıksal Çıkarım Kuralları
 
-Önerme mantığında (p, q = önermeler; → "ise", ¬ "değil", ∧ "ve", ∨ "veya"):
-
-| Kural | Kalıp | Örnek |
+| Kural | Kalıp (sözel) | Örnek |
 |---|---|---|
-| **Modus Ponens** (onaylama) ⭐ | $p \rightarrow q,\ \ p\ \ \vdash\ \ q$ | "Yağmur yağarsa yol ıslanır. Yağmur yağıyor." → **Yol ıslak.** |
-| **Modus Tollens** (reddetme) | $p \rightarrow q,\ \ \neg q\ \ \vdash\ \ \neg p$ | "Yağmur yağarsa yol ıslanır. Yol ıslak değil." → **Yağmur yağmıyor.** |
-| **Hipotetik kıyas** (zincir) | $p \rightarrow q,\ \ q \rightarrow r\ \ \vdash\ \ p \rightarrow r$ | ateş → enfeksiyon, enfeksiyon → antibiyotik ⇒ ateş → antibiyotik |
-| **Ayırıcı kıyas** | $p \lor q,\ \ \neg p\ \ \vdash\ \ q$ | "Ya grip ya alerji. Grip değil." → **Alerji.** |
-| **VE-eleme** | $p \land q\ \ \vdash\ \ p$ | "Ateş var ve öksürük var." → Ateş var. |
-| **Çözünürlük** (*Resolution*, Robinson 1965) | $p \lor q,\ \ \neg q \lor r\ \ \vdash\ \ p \lor r$ | Prolog ve otomatik teorem ispatlayıcıların temeli; **çelişki ile ispat** yapar |
+| **Modus Ponens** (onaylama) ⭐ | "EĞER A İSE B" doğru ve **A doğru** → **B doğrudur** | "Yağmur yağarsa yol ıslanır. Yağmur yağıyor." → **Yol ıslak.** |
+| **Modus Tollens** (reddetme) | "EĞER A İSE B" doğru ve **B yanlış** → **A yanlıştır** | "Yağmur yağarsa yol ıslanır. Yol ıslak değil." → **Yağmur yağmıyor.** |
+| **Hipotetik kıyas** (zincir) | A ise B, B ise C → **A ise C** | ateş → enfeksiyon, enfeksiyon → antibiyotik ⇒ ateş → antibiyotik |
+| **Ayırıcı kıyas** | "A veya B" doğru, A yanlış → **B doğru** | "Ya grip ya alerji. Grip değil." → **Alerji.** |
+| **VE-eleme** | "A ve B" doğru → A doğru | "Ateş var ve öksürük var." → Ateş var. |
+| **Çözünürlük** (*Resolution*, Robinson 1965) | İki ifadede birbirini **çürüten** parçalar silinip kalanlar birleştirilir; **çelişki ile ispat** yapar | Prolog ve otomatik teorem ispatlayıcıların temeli |
 
 > ⚠️ **Yaygın mantık hataları (sınavda tuzak olarak sorulur):**
-> - **Sonucu onaylama:** $p \rightarrow q,\ q \vdash p$ ❌ — "Yol ıslak, demek ki yağmur yağdı" (fıskiye olabilir). *Dikkat: abdüksiyon tam olarak budur — bu yüzden kesin değil, olasıdır.*
-> - **Öncülü reddetme:** $p \rightarrow q,\ \neg p \vdash \neg q$ ❌
+> - **Sonucu onaylama:** "A ise B; B doğru → A doğru" ❌ — "Yol ıslak, demek ki yağmur yağdı" (fıskiye olabilir). *Dikkat: abdüksiyon tam olarak budur — bu yüzden kesin değil, olasıdır.*
+> - **Öncülü reddetme:** "A ise B; A yanlış → B yanlış" ❌ — "Yağmur yağmıyor, demek ki yol kuru" (yine fıskiye!)
 
-**Yüklem mantığı ve birleştirme (unification):** Değişkenli kurallarda çıkarım motoru değişkenleri olgularla **eşleştirir**:
+**Önerme mantığı ↔ Yüklem mantığı:**
+- **Önerme mantığı:** "Ali öğrencidir" gibi bütün cümleler doğru/yanlış → **değişken yoktur**, genelleme yapamaz.
+- **Yüklem (birinci derece) mantık:** **Değişken** ve **niceleyiciler** kullanır: "**Her** insan ölümlüdür", "**Bazı** kuşlar uçamaz". Prolog ve uzman sistemlerin çoğu buna dayanır.
+- **Birleştirme (unification):** Çıkarım motorunun kuraldaki değişkenleri olgularla **eşleştirmesidir.** "X'in ebeveyni Y, Y'nin ebeveyni Z ise X, Z'nin dedesidir" kuralı ve "Ali, Ayşe'nin ebeveyni; Ayşe, Can'ın ebeveyni" olgularıyla motor X = Ali, Y = Ayşe, Z = Can eşleştirmesini yaparak **"Ali, Can'ın dedesidir"** sonucunu çıkarır.
 
-```prolog
-ebeveyn(ali, ayse).          % olgu
-ebeveyn(ayse, can).          % olgu
-dede(X, Z) :- ebeveyn(X, Y), ebeveyn(Y, Z).   % kural: X, Z'nin dedesi/ninesidir
-?- dede(ali, Kim).           % sorgu → X=ali, Y=ayse (birleştirme), Z=can  ⇒  Kim = can
-```
-
-## 4.3 ✍️ İleri Zincirleme — Adım Adım Örnek (Hayvan Tanıma)
+## 4.3 İleri Zincirleme — Adım Adım Örnek (Hayvan Tanıma)
 
 **Bilgi tabanı (kurallar):**
 
@@ -665,7 +539,7 @@ dede(X, Z) :- ebeveyn(X, Y), ebeveyn(Y, Z).   % kural: X, Z'nin dedesi/ninesidir
 
 > **Sonuç: çita.** Sistem hiçbir hedef verilmeden, **veriden** başlayıp ulaşabildiği her şeyi çıkardı → **veri güdümlü**.
 
-## 4.4 ✍️ Geri Zincirleme — Aynı Bilgi Tabanıyla
+## 4.4 Geri Zincirleme — Aynı Bilgi Tabanıyla
 
 **Hedef: "Bu hayvan kaplan mı?"** Çıkarım motoru hedefi bir **yığına (stack)** koyar ve onu kanıtlayabilecek kuralı arar:
 
@@ -700,93 +574,60 @@ Aynı anda **birden fazla kural** tetiklenebilir durumdaysa (çakışma kümesi)
 
 ## 4.6 Belirsizlik Altında Çıkarım
 
-Gerçek dünyada olgular ve kurallar **%100 kesin değildir**. Üç klasik yöntem:
+Gerçek dünyada olgular ve kurallar **%100 kesin değildir** ("muhtemelen grip"). Üç klasik yöntem:
 
-### (a) MYCIN Güven Faktörü (Certainty Factor) — ✍️ Hesaplamalı
-
-CF ∈ [−1, +1]: +1 kesin doğru, 0 bilinmiyor, −1 kesin yanlış.
-
-| Durum | Formül |
-|---|---|
-| Koşul **VE** ile bağlıysa | $CF(A \land B) = \min(CF_A, CF_B)$ |
-| Koşul **VEYA** ile bağlıysa | $CF(A \lor B) = \max(CF_A, CF_B)$ |
-| Kuralın sonucu | $CF(\text{sonuç}) = CF(\text{koşul}) \times CF(\text{kural})$ |
-| İki kural **aynı sonucu** destekliyorsa (ikisi de +) | $CF = CF_1 + CF_2\,(1 - CF_1)$ |
-| İkisi de − | $CF = CF_1 + CF_2\,(1 + CF_1)$ |
-| Biri +, biri − | $CF = \dfrac{CF_1 + CF_2}{1 - \min(\lvert CF_1\rvert, \lvert CF_2\rvert)}$ |
-
-**Örnek:** Olgular: ateş (CF 0.9), öksürük (CF 0.6), kas ağrısı (CF 0.8), hasta aşılı (CF 1.0)
-
-- **R1:** EĞER ateş VE öksürük İSE grip (CF 0.7) → $\min(0.9, 0.6) \times 0.7 = 0.6 \times 0.7 = \mathbf{0.42}$
-- **R2:** EĞER kas ağrısı İSE grip (CF 0.5) → $0.8 \times 0.5 = \mathbf{0.40}$
-- **R1 + R2 birleşimi:** $0.42 + 0.40\,(1 - 0.42) = 0.42 + 0.232 = \mathbf{0.652}$ → iki bağımsız kanıt güveni **artırdı**
-- **R3:** EĞER aşılı İSE grip (CF −0.4) → $1.0 \times (-0.4) = -0.4$
-- **Son birleşim:** $\dfrac{0.652 + (-0.4)}{1 - \min(0.652,\ 0.4)} = \dfrac{0.252}{0.6} = \mathbf{0.42}$ → karşı kanıt güveni **düşürdü**
-
-> **Sonuç:** "Hasta muhtemelen grip (CF = 0.42)."
-
-### (b) Bayes Teoremi — ✍️ Hesaplamalı
-
-$$
-P(H \mid E) = \frac{P(E \mid H)\cdot P(H)}{P(E)}, \qquad P(E) = P(E\mid H)P(H) + P(E\mid \neg H)P(\neg H)
-$$
-
-$P(H)$: **önsel** (*prior*) olasılık — kanıttan önceki inanç · $P(E\mid H)$: **olabilirlik** (*likelihood*) · $P(H\mid E)$: **sonsal** (*posterior*) olasılık — kanıttan sonraki güncellenmiş inanç
-
-**Örnek (klasik sınav sorusu):** Bir hastalık toplumda **%1**. Test hastaların **%90**'ını yakalıyor (duyarlılık), sağlamların **%5**'ine yanlışlıkla pozitif diyor (FPR). Testi pozitif çıkan biri gerçekten hasta mı?
-
-$$
-P(H\mid +) = \frac{0.90 \times 0.01}{0.90 \times 0.01 + 0.05 \times 0.99} = \frac{0.009}{0.009 + 0.0495} = \frac{0.009}{0.0585} \approx \mathbf{0.154}
-$$
-
-**Sezgisel kontrol — 10.000 kişi düşün:**
-
-| | Test + | Test − | Toplam |
+| | **Güven Faktörü (CF)** | **Bayes Olasılığı** | **Bulanık Mantık** |
 |---|---|---|---|
-| **Hasta** | 90 | 10 | 100 |
-| **Sağlam** | 495 | 9405 | 9900 |
+| Neyi modeller? | Uzmanın bir sonuca **ne kadar güvendiği** | Bir olayın **ne kadar olası** olduğu | Bir kavramın **ne derece** doğru olduğu ("biraz sıcak") |
+| Değer aralığı | −1 (kesin yanlış) … +1 (kesin doğru) | 0 … 1 | 0 … 1 (üyelik derecesi) |
+| Belirsizliğin kaynağı | Eksik / güvenilmez kanıt | Rastlantı, rastgelelik | **Dilin muğlaklığı** (sıcak, uzun, hızlı) |
+| Ünlü örnek | **MYCIN** | Spam filtresi, tıbbi teşhis | Klima, çamaşır makinesi, metro freni |
 
-Pozitif çıkan 585 kişiden sadece **90**'ı hasta → 90/585 ≈ **%15.4**. 😮 Hastalık nadir olduğu için yanlış alarmlar gerçek pozitifleri boğuyor (*taban oranı yanılgısı / base rate fallacy*).
+### (a) MYCIN Güven Faktörü (Certainty Factor)
 
-> 🔁 **Kanıt eklendikçe inanç güncellenir:** Aynı kişi ikinci (bağımsız) testten de pozitif çıkarsa yeni önsel 0.154 olur → $P = \frac{0.9 \times 0.154}{0.9 \times 0.154 + 0.05 \times 0.846} \approx \mathbf{0.77}$. Bu, **Bayesçi çıkarımın** özüdür.
+- Her olguya ve her kurala uzman tarafından **−1 ile +1 arası** bir güven değeri verilir.
+- Koşullar **VE** ile bağlıysa **en zayıf halka** (en düşük güven) belirleyicidir; **VEYA** ile bağlıysa **en güçlü** olan.
+- Kuralın sonucunun güveni = koşulun güveni **×** kuralın güveni → kural ne kadar kesin değilse sonuç o kadar zayıflar.
+- **Aynı sonucu destekleyen iki bağımsız kanıt güveni artırır** (ama +1'i asla geçmez); **karşı kanıt güveni düşürür.**
+- **Zayıf yanı:** Olasılık teorisine dayanmaz, kuralların bağımsız olduğunu varsayar → matematiksel olarak tutarsız sonuçlar verebilir. Yine de pratikte iyi çalıştı.
 
-**Bayes ağları** (*Judea Pearl, 1980'ler*): Değişkenler düğüm, nedensel ilişkiler ok olan bir graf; her düğümde koşullu olasılık tablosu bulunur. Örn. *Yağmur → Islak çimen ← Fıskiye*. "Çimen ıslak" gözlenince yağmur ve fıskiye olasılıkları güncellenir — **abdüksiyonun olasılıksal hâli**. (Bkz. Naive Bayes sınıflandırıcı, Bölüm 6.5)
+### (b) Bayes Teoremi (Olasılıksal Çıkarım)
 
-### (c) Bulanık Mantık Çıkarımı (Mamdani) — ✍️ Hesaplamalı
+**Ana fikir: Yeni bir kanıt geldiğinde, bir hipoteze olan inancını güncelle.**
 
-**Bulanık mantık** (*Lotfi Zadeh, 1965*): Bir değer bir kümeye **0 ile 1 arasında bir dereceyle** üye olabilir. 28 °C "sıcak" mı? Klasik mantık: evet/hayır. Bulanık mantık: **0.3 sıcak, 0.7 ılık.** **Mamdani** (1975) çıkarımı 4 adımdır:
+| Kavram | Anlamı | Hastalık örneği |
+|---|---|---|
+| **Önsel olasılık** (*prior*) | Kanıttan **önceki** inanç | Hastalık toplumda ne kadar yaygın? |
+| **Olabilirlik** (*likelihood*) | Hipotez doğruysa bu kanıtın görülme olasılığı | Hastaysa test ne sıklıkla pozitif çıkar? |
+| **Sonsal olasılık** (*posterior*) | Kanıttan **sonraki** güncellenmiş inanç | Test pozitif çıktı — kişi gerçekten hasta mı? |
+
+> ⚠️ **Taban oranı yanılgısı** (*base rate fallacy*) — çok sorulur: Hastalık **çok nadirse**, oldukça iyi bir test bile pozitif çıktığında kişinin **büyük ihtimalle sağlam** olduğu sonucu çıkabilir. Çünkü sağlam insan sayısı o kadar fazladır ki onların küçük bir yüzdesine verilen **yanlış alarmlar**, az sayıdaki gerçek hastadan **daha kalabalıktır.** Bu yüzden doktorlar pozitif sonucu **ikinci bir testle** doğrular: her yeni kanıt, inancı yeniden günceller.
+
+**Bayes ağları** (*Judea Pearl, 1980'ler*): Değişkenler **düğüm**, nedensel ilişkiler **ok** olan bir graf. Örn. *Yağmur → Islak çimen ← Fıskiye*. "Çimen ıslak" gözlenince hem yağmur hem fıskiye olasılığı artar; sonra "fıskiye açıktı" öğrenilirse yağmur olasılığı tekrar **düşer** (*açıklayıp geçme / explaining away*). Bu, **abdüksiyonun olasılıksal hâlidir.** Naive Bayes sınıflandırıcı da bu teoreme dayanır (bkz. Bölüm 6.5).
+
+### (c) Bulanık Mantık Çıkarımı (Mamdani)
+
+**Bulanık mantık** (*Lotfi Zadeh, 1965*): Bir değer bir kümeye **0 ile 1 arasında bir dereceyle** üye olabilir. 28 °C "sıcak" mı? Klasik mantık: ya evet ya hayır. Bulanık mantık: **"biraz sıcak, daha çok ılık."** İnsanın **sözel, muğlak** bilgisini ("hava biraz sıcaksa fanı orta hızda çalıştır") makineye aktarmayı sağlar.
 
 ![Bulanık çıkarım](images/bulanik_cikarim.png)
 
-**Problem:** Klimada fan hızını belirle. Girdi: **Sıcaklık = 28 °C**, **Nem = %60**.
+**Mamdani çıkarımının 4 adımı** (örnek: sıcaklık ve neme göre klima fan hızı):
 
-**① Bulanıklaştırma (fuzzification):** Keskin girdiyi üyelik derecelerine çevir (grafikten):
-μ(Soğuk) = 0, μ(Ilık) = **0.7**, μ(Sıcak) = **0.3** · μ(Normal nem) = **0.5**, μ(Yüksek nem) = **0.4**
-
-**② Kural değerlendirme:** **VE → min**, **VEYA → max**
-
-| Kural | Hesap | Ateşleme gücü |
+| Adım | Ne yapılır? | Örnekte |
 |---|---|---|
-| R1: EĞER sıcaklık **Soğuk** İSE fan **Yavaş** | μ(Soğuk) | **0** (tetiklenmez) |
-| R2: EĞER sıcaklık **Ilık** VE nem **Normal** İSE fan **Orta** | min(0.7, 0.5) | **0.5** |
-| R3: EĞER sıcaklık **Sıcak** VEYA nem **Yüksek** İSE fan **Hızlı** | max(0.3, 0.4) | **0.4** |
-
-**③ Birleştirme (aggregation):** Her kuralın çıktı kümesi ateşleme gücünde **kesilir** (Orta 0.5'te, Hızlı 0.4'te) ve kümeler **max** ile tek şekilde birleştirilir (grafikte mavi alan).
-
-**④ Durulaştırma (defuzzification):** Bulanık şekli tek bir sayıya çevir. En yaygın yöntem **ağırlık merkezi** (*centroid*):
-
-$$
-z^* = \frac{\int \mu(z)\, z\, dz}{\int \mu(z)\, dz} \approx \mathbf{\%61.5}\ \text{fan hızı}
-$$
-
-> 💡 Elle hızlı yaklaşım (sınavda integral istenmezse): kümelerin tepe noktalarının **ağırlıklı ortalaması** → $\frac{0.5 \cdot 50 + 0.4 \cdot 100}{0.5 + 0.4} \approx 72.2$. (Bu, **Sugeno** tipi çıkarıma benzer; Sugeno'da kural çıktıları küme değil **sabit sayı/fonksiyondur**, durulaştırma ağırlıklı ortalamadır.)
+| **① Bulanıklaştırma** (*fuzzification*) | Keskin girdi, **üyelik fonksiyonlarıyla** kümelere ait olma derecelerine çevrilir | 28 °C → "çoğunlukla ılık, biraz sıcak"; %60 nem → "kısmen normal, kısmen yüksek" |
+| **② Kural değerlendirme** | Her kuralın ne kadar tetiklendiği bulunur: **VE → en küçük**, **VEYA → en büyük** derece alınır | "Ilık VE normal nem İSE fan orta" kuralı kısmen tetiklenir |
+| **③ Birleştirme** (*aggregation*) | Her kuralın çıktı kümesi tetiklenme derecesinde **kesilir**, hepsi tek şekilde birleştirilir | "Orta" ve "hızlı" kümelerinin kesilmiş hâlleri üst üste konur |
+| **④ Durulaştırma** (*defuzzification*) | Bulanık şekil **tek bir sayıya** çevrilir; en yaygın yöntem **ağırlık merkezi** (*centroid*) | Fan hızı ≈ orta ile hızlı arasında bir değer |
 
 | Klasik (keskin) mantık | Bulanık mantık |
 |---|---|
-| Değer 0 ya da 1 | Değer [0, 1] aralığında |
-| "28 °C sıcaktır" ya doğru ya yanlış | "28 °C, 0.3 derecede sıcaktır" |
+| Değer 0 ya da 1 | Değer 0 ile 1 arasında |
+| "28 °C sıcaktır" ya doğru ya yanlış | "28 °C bir **derecede** sıcaktır" |
 | Kurallar ya çalışır ya çalışmaz | Kurallar **kısmen** çalışır, çıktılar **harmanlanır** |
-| Eşikte ani sıçrama (24.9 → fan kapalı, 25.0 → tam açık) | **Yumuşak** geçiş |
+| Eşikte ani sıçrama (24.9 °C → fan kapalı, 25 °C → tam açık) | **Yumuşak**, insan gibi geçiş |
+
+> 📝 **Mamdani ↔ Sugeno:** Mamdani'de kural çıktıları da bulanık kümedir (okunabilir, sezgisel). **Sugeno**'da kural çıktıları **sabit sayı veya fonksiyondur** → hesaplaması hızlı, kontrol sistemlerinde yaygın.
 
 ## 4.7 Makine Öğrenmesinde "Çıkarım": Eğitim vs Çıkarım
 
@@ -805,32 +646,33 @@ ML'de **çıkarım (inference)** kelimesi farklı anlamda kullanılır:
 
 > 🔗 **Büyük resim:** Uzman sistem çıkarımı **açık kurallarla, adım adım ve açıklanabilir**; ML çıkarımı **öğrenilmiş ağırlıklarla, tek seferde ve kara kutu**. Agentic AI ikisini birleştirir: LLM'in esnek akıl yürütmesi + araçlar/kurallar ile doğrulama.
 
-## 4.8 Kısa Python Kodu: İleri Zincirleme Motoru
+## 4.8 Kilit Kavramlar: Kapalı Dünya, Monoton Olmayan Akıl Yürütme, Sembolik ↔ Bağlantıcı YZ
 
-```python
-kurallar = [
-    ({"tüyü var"}, "kuş"),
-    ({"kılı var"}, "memeli"),
-    ({"memeli", "et yer"}, "etobur"),
-    ({"etobur", "sarımsı-kahve", "koyu benekli"}, "çita"),
-    ({"etobur", "sarımsı-kahve", "siyah çizgili"}, "kaplan"),
-]
+### Kapalı Dünya ↔ Açık Dünya Varsayımı
 
-def ileri_zincirleme(olgular):
-    olgular = set(olgular)
-    degisti = True
-    while degisti:                          # yeni olgu eklendikçe devam et
-        degisti = False
-        for kosullar, sonuc in kurallar:
-            if kosullar <= olgular and sonuc not in olgular:   # tüm koşullar sağlandı mı? (refraksiyon)
-                print(f"{' VE '.join(kosullar)}  →  {sonuc}")
-                olgular.add(sonuc)          # tetikle: çalışma belleğine ekle
-                degisti = True
-    return olgular
+| | **Kapalı dünya varsayımı** (*Closed World Assumption*) | **Açık dünya varsayımı** |
+|---|---|---|
+| Bilinmeyen bir olgu | **Yanlış** kabul edilir | **Bilinmiyor** kabul edilir |
+| Örnek | Uçuş veritabanında İstanbul–Aksaray uçuşu yoksa → "**böyle bir uçuş yok**" | Bilgi tabanında "Ali evli" yoksa → "evli olup olmadığını **bilmiyorum**" |
+| Nerede? | **Prolog**, veritabanları, çoğu uzman sistem | Anlamsal web, ontolojiler |
 
-ileri_zincirleme({"kılı var", "et yer", "sarımsı-kahve", "koyu benekli"})
-# kılı var → memeli · memeli VE et yer → etobur · ... → çita
-```
+### Monoton ↔ Monoton Olmayan Akıl Yürütme
+
+- **Monoton:** Yeni bilgi eklenince eski sonuçlar **asla geri alınmaz** (klasik mantık, matematik).
+- **Monoton olmayan:** Yeni bilgi eski bir sonucu **geçersiz kılabilir.** Örnek: *"Tweety bir kuştur → Tweety uçar."* Sonra *"Tweety bir penguendir"* bilgisi gelir → *"Tweety uçmaz."* İnsanlar günlük hayatta hep böyle düşünür (**varsayılan akıl yürütme** / *default reasoning*). Uzman sistemlerdeki **özgüllük** stratejisi bunu destekler: "penguen uçamaz" kuralı, "kuşlar uçar" kuralından daha özeldir ve önce çalışır.
+
+### Sembolik YZ ↔ Bağlantıcı (Connectionist) YZ
+
+| | **Sembolik YZ** (GOFAI) | **Bağlantıcı YZ** (sinir ağları) |
+|---|---|---|
+| Bilgi | Açık **semboller ve kurallar** | Ağırlıklara **dağılmış**, örtük |
+| Çıkarım | Mantıksal, adım adım | Sayısal, paralel, tek geçişte |
+| Öğrenme | Elle kodlanır | **Veriden** öğrenir |
+| Açıklanabilirlik | ✅ Yüksek | ❌ Düşük (kara kutu) |
+| Güçlü olduğu yer | Planlama, mantık, kesin kurallar | Algılama: görüntü, ses, dil |
+| Örnek | Uzman sistemler, Prolog | Derin öğrenme, LLM'ler |
+
+> 💡 Günümüzün yönü **nöro-sembolik YZ**: sinir ağlarının algılama gücünü sembolik sistemlerin mantık ve açıklanabilirliğiyle birleştirmek. LLM tabanlı ajanların araç (hesap makinesi, veritabanı, kural motoru) kullanması da bunun pratik bir örneğidir.
 
 ---
 
@@ -1058,17 +900,14 @@ ML yöntemlerinin çoğunda veri önce **sayıya çevrilir:**
 
 ### Bilgi Kazancı (Information Gain) ve Entropi
 
-$$
-\text{Entropi}(S) = -p\log_2 p - q\log_2 q
-\qquad\qquad
-\text{Gain}(S, A) = \text{Entropi}(S) - \sum_{v \in \text{Değerler}(A)} \frac{|S_v|}{|S|}\,\text{Entropi}(S_v)
-$$
+- **Entropi = bir kümedeki belirsizlik / karışıklık ölçüsü.**
+  - Kümedeki örneklerin **hepsi aynı sınıftaysa** entropi **en düşük (0)** → hiç belirsizlik yok, "saf" küme
+  - Sınıflar **yarı yarıya** karışıksa entropi **en yüksek** → en belirsiz durum
+- **Bilgi kazancı = bir özelliğe göre bölmeden sonra belirsizliğin ne kadar azaldığı.** Kazancı **en büyük** olan özellik en ayırt edici olandır → karar ağaçları kökte bu özelliği seçer (ID3, C4.5).
 
 ![Entropi](images/entropi.png)
 
-**PDF örneği:** 14 örnek, 9 pozitif 5 negatif → $-\frac{9}{14}\log_2\frac{9}{14} - \frac{5}{14}\log_2\frac{5}{14} = \mathbf{0.94}$
-
-**PDF'teki piknik örneğinin çözümü:**
+**PDF'teki piknik örneği:**
 
 | Olay | Hava | Nem | Rüzgar | Su sıcaklığı | Pikniğe gidildi mi? |
 |---|---|---|---|---|---|
@@ -1077,13 +916,9 @@ $$
 | 3 | yağmurlu | yüksek | güçlü | ılık | Hayır |
 | 4 | güneşli | yüksek | güçlü | soğuk | Evet |
 
-- $\text{Entropi}(S)$: 3 Evet, 1 Hayır → $-\frac34\log_2\frac34 - \frac14\log_2\frac14 = 0.811$
-- **Hava:** güneşli {E,E,E} → 0; yağmurlu {H} → 0 → $\text{Gain} = 0.811 - 0 = \mathbf{0.811}$
-- **Nem:** normal {E} → 0; yüksek {E,H,E} → 0.918 → $0.811 - \frac34(0.918) = \mathbf{0.123}$
-- **Rüzgar:** hep "güçlü" → hiç bilgi vermez → $\mathbf{0}$
-- **Su sıcaklığı:** ılık {E,E,H} → 0.918; soğuk {E} → 0 → $\mathbf{0.123}$
-
-✅ **En büyük bilgi kazancı = Hava** → en ayırt edici özellik (PDF ile aynı sonuç). Karar ağaçları da düğümleri bu şekilde seçer.
+- **Hava** veriyi **tamamen saf** gruplara ayırır (güneşli → hep Evet, yağmurlu → hep Hayır) → **en büyük bilgi kazancı** → en ayırt edici özellik (PDF ile aynı sonuç).
+- **Nem** ve **su sıcaklığı** grupları kısmen karışık bırakır → az kazanç.
+- **Rüzgar** her örnekte aynı ("güçlü") → **hiç bilgi vermez**, kazancı sıfır.
 
 **Sinyal/Gürültü oranı (S2N):** **Sınıflar arası** farkı büyük, **sınıf içi** farkı küçük özellikler seçilir.
 
@@ -1095,10 +930,10 @@ $$
 |---|---|---|
 | Fikir | Verinin **en çok değiştiği (varyansı en büyük)** yönleri bul | Sınıfları **en iyi ayıran** yönleri bul |
 | Sınıf bilgisi | ❌ Kullanmaz (denetimsiz) | ✅ Kullanır (denetimli) |
-| Adımlar | Kovaryans matrisi → özdeğerler → en büyük M özdeğerin özvektörleri → veriyi bunlara izdüşür (N → M boyut) | Sınıflar arası / sınıf içi dağılım oranını maksimize et |
+| Adımlar | Verinin en çok yayıldığı yönler bulunur, veri bu az sayıdaki yöne izdüşürülür (çok boyut → az boyut) | Sınıflar arası / sınıf içi dağılım oranını maksimize et |
 | Zayıf yanı | Sınıflar iç içe geçebilir → sınıflandırma başarısı düşebilir | — |
 
-> Özdeğer = verinin o özvektöre izdüşümündeki **varyans**. En büyük özdeğerler seçilir.
+> 💡 **Boyut laneti** (*curse of dimensionality*): Özellik sayısı arttıkça veri uzayda seyrekleşir, modelin ihtiyaç duyduğu örnek sayısı hızla artar ve aşırı öğrenme riski büyür. Özellik seçimi/çıkarımı bu yüzden önemlidir.
 
 ## 6.5 Sınıflandırma Algoritmaları
 
@@ -1106,47 +941,28 @@ $$
 
 | Algoritma | Nasıl çalışır? | Artı / Eksi |
 |---|---|---|
-| **Doğrusal Regresyon** | $w_0 + w_1x + w_2y \ge 0$ şeklinde düz çizgi; en az hata yapan $w_i$'leri bulur | Basit ama **yeterince esnek değil** |
-| **SVM** (Destek Vektör Makineleri) | Sınıfları ayıran ve **her iki sınıfa da en uzak** (maksimum marjin) hiperdüzlemi bulur. Doğrusal ayrılamıyorsa veriyi **yüksek boyuta taşır** (çekirdek hilesi, ör. $(x_1^2,\ x_2^2,\ \sqrt2 x_1x_2)$) | Güçlü, genelleme iyi; büyük veride yavaş |
-| **Karar Ağaçları** | **Böl ve yönet**: entropiyle en iyi özellik/eşik seçilip veri bölünür, yaprakta tek sınıf kalana kadar devam | **Kurallar anlaşılır** (EĞER X > 5 İSE mavi...); aşırı öğrenmeye yatkın |
-| **Yapay Sinir Ağları** | Biyolojik nöronlardan esinlenmiş; $x = \sum W_iA_i + \theta$, $y = \frac{1}{1+e^{-x}}$. Tek nöron = **perceptron**; doğrusal olmayan sınırlar için **çok katmanlı perceptron**, **geri yayılım** (backpropagation) ile eğitilir | Çok güçlü; kara kutu, çok veri ister |
-| **K-En Yakın Komşu (KNN)** | **Eğitim yok** (örnek tabanlı / tembel). Yeni örneğe **en yakın K** örneğe bakılır, **çoğunluk** hangi sınıftaysa o seçilir. Uzaklık: Öklid $d = \sqrt{\sum (a_r(x_i) - a_r(x_j))^2}$ — *"Bana arkadaşını söyle, sana kim olduğunu söyleyeyim"* | Basit; test aşaması yavaş |
+| **Doğrusal Regresyon** | Sınıfları **düz bir çizgiyle** ayırmaya çalışır; en az hata yapan çizgiyi bulur | Basit ama **yeterince esnek değil** |
+| **SVM** (Destek Vektör Makineleri) | Sınıfları ayıran ve **her iki sınıfa da en uzak** (maksimum marjin) sınırı bulur; bu sınırı belirleyen en yakın noktalara **destek vektörleri** denir. Doğrusal ayrılamıyorsa veriyi **daha yüksek boyuta taşır** (**çekirdek hilesi** / *kernel trick*) | Güçlü, genelleme iyi; büyük veride yavaş |
+| **Karar Ağaçları** | **Böl ve yönet**: bilgi kazancı en yüksek özellik seçilip veri bölünür, yaprakta tek sınıf kalana kadar devam | **Kurallar anlaşılır** (EĞER X > 5 İSE mavi...); aşırı öğrenmeye yatkın → **budama** gerekir |
+| **Yapay Sinir Ağları** | Biyolojik nöronlardan esinlenmiş; girişleri ağırlıklarla toplayıp aktivasyon fonksiyonundan geçirir. Tek nöron = **perceptron**; doğrusal olmayan sınırlar için **çok katmanlı perceptron**, **geri yayılım** ile eğitilir | Çok güçlü; kara kutu, çok veri ister |
+| **K-En Yakın Komşu (KNN)** | **Eğitim yok** (örnek tabanlı / **tembel öğrenme**). Yeni örneğe **en yakın K** örneğe bakılır, **çoğunluk** hangi sınıftaysa o seçilir. Yakınlık genelde **Öklid uzaklığı** ile ölçülür — *"Bana arkadaşını söyle, sana kim olduğunu söyleyeyim"* | Basit; test aşaması yavaş |
 | **LVQ** (Öğrenmeli Vektör Kuantalama) | Her sınıf için **betimleyici (prototip) vektörler** öğrenilir; test örneği **en yakın prototipin** sınıfına atanır | KNN'den hızlı |
-| **Naive Bayes** | **Bayes teoremi** + özelliklerin birbirinden **bağımsız** olduğu ("naif") varsayımı; en yüksek sonsal olasılıklı sınıf seçilir | Çok hızlı, az veriyle çalışır, metin/spam'de başarılı; bağımsızlık varsayımı genelde gerçekçi değil |
-| **Random Forest** | Verinin rastgele alt kümeleriyle **çok sayıda karar ağacı** eğitilir, **oylama** ile karar verilir | Aşırı öğrenmeye karşı dirençli, güçlü; tek ağaç kadar okunabilir değil |
+| **Naive Bayes** | **Bayes teoremi** + özelliklerin birbirinden **bağımsız** olduğu ("naif") varsayımı; en olası sınıf seçilir | Çok hızlı, az veriyle çalışır, metin/spam'de başarılı; bağımsızlık varsayımı genelde gerçekçi değil |
+| **Random Forest** | Verinin rastgele alt kümeleriyle **çok sayıda karar ağacı** eğitilir, **oylama** ile karar verilir (**topluluk öğrenmesi** / *ensemble*) | Aşırı öğrenmeye karşı dirençli, güçlü; tek ağaç kadar okunabilir değil |
 | **C4.5** | Quinlan'ın karar ağacı algoritması (ID3'ün gelişmiş hâli); **kazanç oranı** kullanır, sürekli değerleri ve eksik veriyi işler | — |
-| **Lojistik Regresyon** | Doğrusal birleşimi **sigmoid**'den geçirip **olasılık** verir: $P(y=1) = \frac{1}{1+e^{-(w \cdot x + b)}}$ | Adı "regresyon" ama **sınıflandırma** yapar! Tek nöronlu YSA ile aynı şeydir |
+| **Lojistik Regresyon** | Doğrusal birleşimi **sigmoid** fonksiyonundan geçirip 0–1 arası bir **olasılık** verir | Adı "regresyon" ama **sınıflandırma** yapar! Tek nöronlu YSA ile aynı şeydir |
 
-### ✍️ KNN Elle Çözülmüş Örnek
+### KNN'de Dikkat Edilecekler
 
-Eğitim verisi: A(1,1) 🔴 · B(2,4) 🔴 · F(0,3) 🔴 · C(4,1) 🔵 · D(5,5) 🔵 · E(3,5) 🔵 — **Yeni örnek: Q(3, 3)**
+- **K değeri sonucu değiştirir:** Aynı örnek K = 1'de bir sınıfa, K = 3'te başka sınıfa atanabilir. **Küçük K** → gürültüye duyarlı (aşırı öğrenme); **büyük K** → sınırlar fazla düzleşir (eksik öğrenme).
+- İkili sınıflandırmada beraberliği önlemek için **K tek sayı** seçilir.
+- Özelliklerin ölçekleri farklıysa (yaş: 20–60, maaş: 20.000–200.000) büyük ölçekli özellik uzaklığa hâkim olur → önce **normalizasyon** yapılmalıdır.
+- Eğitim yoktur ama **her tahminde tüm eğitim verisine** uzaklık hesaplanır → büyük veride **yavaştır.**
 
-| Nokta | Sınıf | Öklid uzaklığı Q'ya | Sıra |
-|---|---|---|---|
-| B (2,4) | 🔴 | $\sqrt{1 + 1} = 1.41$ | **1** |
-| E (3,5) | 🔵 | $\sqrt{0 + 4} = 2.00$ | **2** |
-| C (4,1) | 🔵 | $\sqrt{1 + 4} = 2.24$ | **3** |
-| A (1,1) | 🔴 | $\sqrt{4 + 4} = 2.83$ | 4 |
-| D (5,5) | 🔵 | $\sqrt{4 + 4} = 2.83$ | 5 |
-| F (0,3) | 🔴 | $\sqrt{9 + 0} = 3.00$ | 6 |
+### Naive Bayes'te Dikkat Edilecekler
 
-- **K = 1:** en yakın B → **🔴 Kırmızı**
-- **K = 3:** B 🔴, E 🔵, C 🔵 → çoğunluk **🔵 Mavi**
-
-> ⚠️ **K değeri sonucu değiştirir!** Küçük K → gürültüye duyarlı (aşırı öğrenme), büyük K → sınırlar fazla düzleşir (eksik öğrenme). İkili sınıflandırmada beraberliği önlemek için **K tek sayı** seçilir. Özelliklerin ölçekleri farklıysa (yaş vs maaş) önce **normalizasyon** yapılmalıdır.
-
-### ✍️ Naive Bayes Elle Çözülmüş Örnek (PDF'teki piknik verisi)
-
-$$
-P(\text{sınıf} \mid x_1, \dots, x_n) \ \propto\ P(\text{sınıf}) \cdot \prod_{i} P(x_i \mid \text{sınıf})
-$$
-
-Yeni gün: **(güneşli, yüksek nem, güçlü rüzgar, soğuk su)** → pikniğe gidilir mi? (Tablo: Bölüm 6.4)
-
-- **Evet:** $P(E) = 3/4$; $P(\text{güneşli}|E) = 3/3$, $P(\text{yüksek}|E) = 2/3$, $P(\text{güçlü}|E) = 3/3$, $P(\text{soğuk}|E) = 1/3$ → $\frac34 \cdot 1 \cdot \frac23 \cdot 1 \cdot \frac13 = \mathbf{0.167}$
-- **Hayır:** $P(H) = 1/4$; $P(\text{güneşli}|H) = 0/1 = 0$ → çarpım = **0**
-
-✅ **Karar: Evet.** ⚠️ Ama dikkat: tek bir sıfır olasılık tüm çarpımı sıfırlar (**sıfır frekans problemi**). Çözüm: **Laplace düzeltmesi** — her sayıma 1 eklenir: $P(x_i|c) = \frac{\text{sayı}(x_i, c) + 1}{\text{sayı}(c) + k}$ ($k$: özelliğin alabileceği değer sayısı).
+- **Neden "naif"?** Sınıf bilindiğinde özelliklerin birbirinden **bağımsız** olduğunu varsayar (ör. spam e-postada "bedava" ve "kazandınız" kelimelerinin birbirinden bağımsız geçtiğini). Gerçekte genelde doğru değildir ama yöntem **yine de çok iyi çalışır.**
+- **Sıfır frekans problemi:** Eğitimde bir özellik değeri bir sınıfla **hiç** görülmemişse o sınıfın olasılığı tamamen sıfırlanır. PDF'teki piknik verisinde "yağmurlu + Evet" hiç görülmediği için yağmurlu bir günde "Evet" ihtimali hiç kalmaz. **Çözüm: Laplace düzeltmesi** — her sayıma 1 eklenir.
 
 ### "Neden bu kadar çok algoritma var?" (PDF)
 
@@ -1229,15 +1045,17 @@ Sınıflandırıcının tahminleriyle gerçek sınıfları karşılaştıran tab
 
 ### İstatistiksel Ölçütler
 
-| Ölçüt | Formül | Soru | Örnekteki değer |
-|---|---|---|---|
-| **Doğruluk** (*Accuracy*) | $\frac{TP+TN}{TP+TN+FP+FN}$ | Tüm tahminlerin ne kadarı doğru? | 85/100 = **0.85** |
-| **Hata oranı** | $1 - \text{Doğruluk}$ | — | **0.15** |
-| **Kesinlik** (*Precision*) | $\frac{TP}{TP+FP}$ | "Hasta" dediklerimin ne kadarı gerçekten hasta? | 40/45 = **0.889** |
-| **Duyarlılık** (*Recall, Sensitivity, TPR*) | $\frac{TP}{TP+FN}$ | Gerçek hastaların ne kadarını yakaladım? | 40/50 = **0.80** |
-| **Özgüllük** (*Specificity, TNR*) | $\frac{TN}{TN+FP}$ | Gerçek sağlamların ne kadarına "sağlam" dedim? | 45/50 = **0.90** |
-| **Yanlış Pozitif Oranı** (*FPR*) | $\frac{FP}{FP+TN} = 1 - \text{Özgüllük}$ | Sağlamların ne kadarına yanlış alarm verdim? | 5/50 = **0.10** |
-| **F1-Skoru** | $2\cdot\frac{\text{Kesinlik}\cdot\text{Duyarlılık}}{\text{Kesinlik}+\text{Duyarlılık}}$ | Kesinlik ve duyarlılığın **harmonik ortalaması** | **0.842** |
+| Ölçüt | Sorduğu soru | Matrisin hangi kısmına bakar? |
+|---|---|---|
+| **Doğruluk** (*Accuracy*) | Tüm tahminlerin ne kadarı doğru? | **Köşegen** (TP + TN) / hepsi |
+| **Hata oranı** | Tüm tahminlerin ne kadarı yanlış? | Doğruluğun tümleyeni |
+| **Kesinlik** (*Precision*) | "**Hasta**" dediklerimin ne kadarı gerçekten hasta? | **Tahmin: Pozitif** sütunu |
+| **Duyarlılık** (*Recall, Sensitivity, TPR*) | **Gerçek hastaların** ne kadarını yakaladım? | **Gerçek: Pozitif** satırı |
+| **Özgüllük** (*Specificity, TNR*) | Gerçek **sağlamların** ne kadarına "sağlam" dedim? | **Gerçek: Negatif** satırı |
+| **Yanlış Pozitif Oranı** (*FPR*) | Sağlamların ne kadarına **yanlış alarm** verdim? | Gerçek: Negatif satırı (özgüllüğün tümleyeni) |
+| **F1-Skoru** | Kesinlik ve duyarlılık **birlikte** ne kadar iyi? | İkisinin **harmonik ortalaması** — biri düşükse F1 de düşük olur |
+
+> 🧠 **Kesinlik ↔ Duyarlılık takası:** Model "hasta" demekte **cömertleşirse** daha çok hasta yakalar (duyarlılık ↑) ama daha çok yanlış alarm verir (kesinlik ↓). **Temkinli** olursa tam tersi. İkisini birden en üst düzeye çıkarmak genelde mümkün değildir; uygulamaya göre denge seçilir.
 
 ### Hangi Ölçüt Ne Zaman Önemli?
 
@@ -1250,20 +1068,12 @@ Sınıflandırıcının tahminleriyle gerçek sınıfları karşılaştıran tab
 
 ### Çok Sınıflı Karışıklık Matrisi
 
-3 sınıf (Kedi, Köpek, Kuş), 30 test örneği. **Satır = gerçek, sütun = tahmin; köşegen = doğru tahminler.**
-
-| Gerçek ↓ / Tahmin → | Kedi | Köpek | Kuş | **Duyarlılık** (satır) |
-|---|---|---|---|---|
-| **Kedi** | **8** | 2 | 0 | 8/10 = **0.80** |
-| **Köpek** | 1 | **6** | 3 | 6/10 = **0.60** |
-| **Kuş** | 0 | 1 | **9** | 9/10 = **0.90** |
-| **Kesinlik** (sütun) | 8/9 = **0.889** | 6/9 = **0.667** | 9/12 = **0.75** | |
-
-- Her sınıf için ayrı TP/FP/FN: ör. **Köpek** için TP = 6, FP = 2 + 1 = 3 (sütundaki diğerleri), FN = 1 + 3 = 4 (satırdaki diğerleri)
-- **Doğruluk** = köşegen toplamı / toplam = (8 + 6 + 9) / 30 = **0.767**
-- **Makro ortalama** (her sınıfa eşit ağırlık): Kesinlik = (0.889 + 0.667 + 0.75)/3 = **0.769**, Duyarlılık = (0.8 + 0.6 + 0.9)/3 = **0.767**
-- **Mikro ortalama** (tüm TP/FP/FN'ler toplanıp hesaplanır) = tek etiketli sınıflandırmada **doğruluğa eşittir** = 0.767
-- Matristen **hangi sınıfların karıştırıldığı** da okunur: Köpeklerin 3'ü Kuş sanılmış → model en çok bu ikisini karıştırıyor.
+Sınıf sayısı ikiden fazlaysa (ör. Kedi / Köpek / Kuş) matris **N × N** olur:
+- **Satırlar = gerçek sınıf**, **sütunlar = tahmin**; **köşegen = doğru tahminler**
+- Her sınıf için **"o sınıf pozitif, diğerleri negatif"** (*bire karşı hepsi*) düşünülerek ayrı kesinlik ve duyarlılık bulunur: **satıra** bakan ölçüt duyarlılık, **sütuna** bakan kesinliktir.
+- **Makro ortalama:** Her sınıfın ölçütü ayrı bulunup **eşit ağırlıkla** ortalanır → **küçük sınıfların** başarısı da önemsenir.
+- **Mikro ortalama:** Tüm sınıfların doğru/yanlışları **toplanıp** tek hesap yapılır → kalabalık sınıflar baskındır; tek etiketli problemlerde doğruluğa eşittir.
+- Köşegen dışındaki büyük değerler **hangi sınıfların birbirine karıştırıldığını** gösterir (ör. köpeklerin çoğu kuş sanılıyorsa model bu ikisini ayırt etmekte zorlanıyordur) → modeli iyileştirmek için en değerli bilgi.
 
 > ⚠️ **Doğruluk tuzağı (dengesiz veri):** 1000 kişiden sadece 10'u hasta olsun. Model hiçbir şey öğrenmeden **herkese "sağlam"** desin → Doğruluk = 990/1000 = **%99** 😮 ama Duyarlılık = 0/10 = **%0** → hiçbir hastayı bulamadı! Bu yüzden tek başına doğruluğa güvenilmez.
 
@@ -1307,40 +1117,20 @@ Yukarıdaki gerçek örnekte **K-En Yakın Komşu (AUC = 0.887)** en iyi, **deri
 
 **ROC'un avantajları:** Eşikten bağımsız karşılaştırma yapar; modelleri tek grafikte kıyaslar; uygulamaya göre (kanser → yüksek TPR, spam → düşük FPR) **en uygun eşiği seçmeye** yardım eder.
 
-### ✍️ ROC Eğrisini Elle Çizme (Sınavda Bu Tarz Soru Gelebilir!)
+### ROC Eğrisi Nasıl Oluşur? (Kavramsal)
 
-Bir model 10 örneğe şu skorları vermiş (5 Pozitif, 5 Negatif). **Skorlar büyükten küçüğe sıralı:**
+1. Model her örneğe bir **skor** verir; örnekler skora göre **büyükten küçüğe** sıralanır.
+2. Eşik **en yukarıdan** başlatılır: kimseye "pozitif" denmez → nokta **(0, 0)**.
+3. Eşik aşağı indikçe sırayla örnekler "pozitif" sayılır: sıradaki örnek **gerçekten pozitifse** eğri **yukarı**, **negatifse sağa** ilerler.
+4. Eşik en alta indiğinde herkese "pozitif" denir → nokta **(1, 1)**.
 
-| Örnek | #1 | #2 | #3 | #4 | #5 | #6 | #7 | #8 | #9 | #10 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Skor | 0.95 | 0.85 | 0.78 | 0.70 | 0.62 | 0.55 | 0.48 | 0.40 | 0.30 | 0.15 |
-| Gerçek | P | P | **N** | P | P | **N** | P | N | N | N |
+> 💡 İyi bir modelde pozitifler listenin **üstünde** toplanır → eğri önce dimdik **yukarı** çıkar, sonra sağa gider → sol üst köşeye yaklaşır. Kötü (rastgele) modelde pozitif ve negatifler karışıktır → eğri **köşegene** yakın kalır.
 
-**Yöntem:** Eşiği en üstten başlayıp her skora sırayla indir. "Skor ≥ eşik → Pozitif" de; her eşikte TPR = TP/5 ve FPR = FP/5 hesapla.
-
-| Eşik | TP | FP | **TPR** | **FPR** | Nokta |
-|---|---|---|---|---|---|
-| > 0.95 | 0 | 0 | 0.0 | 0.0 | (0, 0) |
-| 0.95 | 1 | 0 | 0.2 | 0.0 | ↑ yukarı |
-| 0.85 | 2 | 0 | 0.4 | 0.0 | ↑ |
-| 0.78 | 2 | 1 | 0.4 | 0.2 | → sağa (N geldi) |
-| 0.70 | 3 | 1 | 0.6 | 0.2 | ↑ |
-| 0.62 | 4 | 1 | 0.8 | 0.2 | ↑ |
-| 0.55 | 4 | 2 | 0.8 | 0.4 | → |
-| 0.48 | 5 | 2 | 1.0 | 0.4 | ↑ |
-| 0.40 | 5 | 3 | 1.0 | 0.6 | → |
-| 0.30 | 5 | 4 | 1.0 | 0.8 | → |
-| 0.15 | 5 | 5 | 1.0 | 1.0 | (1, 1) |
-
-> 🧠 **Kısa yol:** Sıralı listede **her P için 1/P kadar yukarı**, **her N için 1/N kadar sağa** git. (Burada 1/5 = 0.2)
-
-![ROC elle hesap](images/roc_elle_hesap.png)
-
-**AUC hesabı — iki yol:**
-1. **Alan (dikdörtgenler):** FPR 0→0.2 aralığında yükseklik 0.4, 0.2→0.4'te 0.8, 0.4→1.0'da 1.0 → $0.2 \times 0.4 + 0.2 \times 0.8 + 0.6 \times 1.0 = 0.08 + 0.16 + 0.60 = \mathbf{0.84}$
-2. **Çift sayma (AUC'nin anlamı):** 5 × 5 = 25 (P, N) çifti var. Pozitifin skoru negatiften büyük olan çiftleri say: #1 → 5, #2 → 5, #4 → 4, #5 → 4, #7 → 3 = **21** → AUC = 21/25 = **0.84** ✅
-
-**Eşik = 0.5 seçilirse:** TP = 4, FP = 2, FN = 1, TN = 3 → Doğruluk = 0.70, Kesinlik = 4/6 = 0.667, Duyarlılık = 0.80, Özgüllük = 0.60.
+**ROC ve AUC hakkında kilit noktalar:**
+- AUC **eşikten bağımsızdır** — modelin **sıralama** kalitesini ölçer, tek bir eşikteki başarıyı değil.
+- AUC sınıfların **oranından etkilenmez**; bu yüzden farklı veri kümelerindeki modelleri kıyaslamada kullanışlıdır.
+- **En iyi eşik** ROC eğrisi üzerinden seçilir: genelde sol üst köşeye **en yakın** nokta; ama uygulamaya göre değişir (kanser taramasında yüksek TPR, spam'de düşük FPR).
+- İki modelin ROC eğrileri **kesişiyorsa** hangisinin daha iyi olduğu, çalışılacak FPR bölgesine bağlıdır — tek AUC sayısı her şeyi anlatmaz.
 
 ### Kesinlik–Duyarlılık (PR) Eğrisi
 
@@ -1348,14 +1138,47 @@ ROC'a benzer şekilde eşik değiştirilerek çizilir ama eksenler **x = Duyarl�
 
 ## 6.11 Regresyon İçin İstatistiksel Ölçütler
 
-Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı ölçütler kullanılır ($y_i$: gerçek, $\hat y_i$: tahmin):
+Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı ölçütler kullanılır:
 
-| Ölçüt | Formül | Anlamı |
+| Ölçüt | Anlamı |
+|---|---|
+| **MAE** (Ortalama Mutlak Hata) | Tahminler ortalama **kaç birim** yanılıyor? Yorumlaması en kolay |
+| **MSE** (Ortalama Kare Hata) | Hataların karesinin ortalaması → **büyük hataları çok daha ağır** cezalandırır |
+| **RMSE** | MSE'nin karekökü → hata yine **orijinal birimde** (TL, °C) okunur |
+| **R²** (Belirlilik katsayısı) | Model verideki değişkenliğin **ne kadarını açıklıyor?** 1 = mükemmel, 0 = sadece ortalamayı tahmin etmek kadar iyi |
+
+## 6.12 Kilit Kavramlar: Yanlılık–Varyans, Veri Bölme, Ön İşleme
+
+### Yanlılık (Bias) ↔ Varyans (Variance)
+
+| | **Yüksek yanlılık** | **Yüksek varyans** |
 |---|---|---|
-| **MAE** (Ortalama Mutlak Hata) | $\frac1n\sum \lvert y_i - \hat y_i\rvert$ | Ortalama kaç birim yanılıyoruz? |
-| **MSE** (Ortalama Kare Hata) | $\frac1n\sum (y_i - \hat y_i)^2$ | Büyük hataları daha çok cezalandırır |
-| **RMSE** | $\sqrt{MSE}$ | MSE'nin orijinal birimdeki hali |
-| **R²** (Belirlilik katsayısı) | $1 - \frac{\sum (y_i-\hat y_i)^2}{\sum (y_i-\bar y)^2}$ | Modelin açıkladığı varyans oranı (1 = mükemmel) |
+| Ne demek? | Model **çok basit**, gerçek ilişkiyi yakalayamıyor | Model **çok karmaşık**, eğitim verisindeki gürültüyü de ezberliyor |
+| Sonuç | **Eksik öğrenme** (*underfitting*) | **Aşırı öğrenme** (*overfitting*) |
+| Belirti | Eğitim **ve** test hatası yüksek | Eğitim hatası düşük, **test hatası yüksek** |
+| Çözüm | Daha karmaşık model, daha iyi özellikler | Daha çok veri, basit model, düzenlileştirme, budama, çapraz doğrulama |
+
+> 🎯 Model karmaşıklığı arttıkça yanlılık azalır, varyans artar → amaç ikisinin **dengelendiği** optimum noktayı bulmak (PDF'teki aşırı öğrenme grafiği tam olarak budur).
+
+### Veri Kümesinin Bölünmesi
+
+| Küme | Görevi |
+|---|---|
+| **Eğitim** (*training*) | Model bu veriden **öğrenir** |
+| **Doğrulama** (*validation*) | Model/parametre **seçimi** için (ör. KNN'de en iyi K, ağaç derinliği) |
+| **Test** | Sadece **en sonda**, modelin **hiç görmediği** veride gerçek başarıyı ölçmek için |
+
+> ⚠️ **Veri sızıntısı** (*data leakage*): Test verisinin herhangi bir şekilde eğitime karışmasıdır → başarı yapay olarak yüksek çıkar ama gerçek hayatta model çöker. Test kümesine eğitim bitene kadar **dokunulmaz.**
+
+### Veri Ön İşleme (Model Kadar Önemli!)
+
+- **Eksik veri:** satırı silmek veya ortalama/ortanca ile doldurmak
+- **Normalizasyon / standardizasyon:** özellikleri aynı ölçeğe getirmek (KNN, SVM, sinir ağları için şart)
+- **Kategorik verinin sayıya çevrilmesi:** "kırmızı / mavi / yeşil" → ayrı 0/1 sütunlar (*one-hot*)
+- **Aykırı değerler** (*outlier*): hatalı ölçümleri tespit edip temizlemek
+- **Dengesiz veri:** azınlık sınıfı çoğaltma / çoğunluğu azaltma, doğru ölçüt (F1, AUC) seçme
+
+> 💬 *"Çöp girer, çöp çıkar"* (*garbage in, garbage out*): En iyi algoritma bile kötü veriden iyi model çıkaramaz.
 
 ---
 
@@ -1377,11 +1200,11 @@ Sınıflandırmada sınıf, regresyonda **sayı** tahmin edildiği için farklı
 
 | Bölüm | Görevi | Yapay sinir ağındaki karşılığı |
 |---|---|---|
-| **Dendritler** | Diğer nöronlardan gelen sinyalleri **alır** | **Girişler** $(x_1, \dots, x_n)$ |
-| **Sinaps** | İki nöron arasındaki bağlantı noktası; bağlantının **gücü değişebilir** | **Ağırlıklar** $(w_1, \dots, w_n)$ |
-| **Hücre gövdesi (soma)** | Gelen sinyalleri **toplar**, çekirdeği içerir | **Toplama** $\sum w_i x_i$ |
+| **Dendritler** | Diğer nöronlardan gelen sinyalleri **alır** | **Girişler** |
+| **Sinaps** | İki nöron arasındaki bağlantı noktası; bağlantının **gücü değişebilir** | **Ağırlıklar** |
+| **Hücre gövdesi (soma)** | Gelen sinyalleri **toplar**, çekirdeği içerir | **Ağırlıklı toplama** |
 | **Akson tepeciği** | Toplam sinyal **eşiği aşarsa** aksiyon potansiyeli başlatır | **Eşik / bias + aktivasyon fonksiyonu** |
-| **Akson** | Sinyali uzağa **iletir** (1 mm – 1 m uzunluğunda olabilir) | **Çıkış** $y$ |
+| **Akson** | Sinyali uzağa **iletir** (1 mm – 1 m uzunluğunda olabilir) | **Çıkış** |
 | **Miyelin kılıf** | Aksonu yalıtır, sinyali **hızlandırır** | — |
 | **Ranvier boğumları** | Miyelin aralıkları; sinyal boğumdan boğuma **atlar** (*saltatory conduction*) | — |
 | **Akson uçları** | Sinyali sinaps aracılığıyla **sonraki nöronlara** aktarır | Sonraki katmana bağlantı |
@@ -1449,7 +1272,7 @@ Bir nörona aynı anda yüzlerce uyarıcı ve baskılayıcı sinyal gelir. Soma 
 - **Zamansal toplama:** Aynı sinapstan **art arda hızlı** gelen sinyaller toplanır
 - Toplam **eşiği aşarsa** → nöron ateşlenir
 
-> 👉 Bu tam olarak yapay nörondaki **ağırlıklı toplam** $\sum w_i x_i$'dir: uyarıcı sinaps = **pozitif ağırlık**, baskılayıcı sinaps = **negatif ağırlık**.
+> 👉 Bu tam olarak yapay nörondaki **ağırlıklı toplamdır**: uyarıcı sinaps = **pozitif ağırlık**, baskılayıcı sinaps = **negatif ağırlık**.
 
 ## 7.5 Beyin Veriyi Nasıl Algılar?
 
@@ -1501,80 +1324,81 @@ Bir nörona aynı anda yüzlerce uyarıcı ve baskılayıcı sinyal gelir. Soma 
 - **Uzun süreli güçlenme (LTP):** Tekrarlanan uyarıyla sinaps kalıcı olarak güçlenir → **öğrenme ve bellek** böyle oluşur.
 - Kullanılmayan bağlantılar **zayıflar / budanır.**
 
-**Hebb kuralının matematiksel hâli:** $\Delta w_{ij} = \eta \cdot x_i \cdot y_j$ → giriş ($x_i$) ve çıkış ($y_j$) **aynı anda** aktifse ağırlık artar ($\eta$: öğrenme oranı).
-
-> 👉 Yapay sinir ağlarında **öğrenme = ağırlıkların güncellenmesi**dir. Biyolojide sinaps gücü değişir, YSA'da $w_i$ değişir (geri yayılım / backpropagation ile).
+> 👉 Yapay sinir ağlarında **öğrenme = ağırlıkların güncellenmesi**dir. Biyolojide sinaps gücü değişir, YSA'da ağırlıklar değişir (geri yayılım / backpropagation ile).
 
 ## 7.7 Biyolojik Nörondan Yapay Nörona
 
 ![Biyolojik ve yapay nöron](images/biyolojik_vs_yapay_noron.png)
 
-$$
-y = f\left(\sum_{i=1}^{n} w_i\,x_i + \theta\right) \qquad\qquad \text{Sigmoid: } f(x) = \frac{1}{1+e^{-x}} \quad \text{(PDF 2'deki formül)}
-$$
+**Yapay nöron 3 adımda çalışır:** ① Her girişi kendi **ağırlığıyla** çarp ② Hepsini **topla** ve bir **eşik/bias** ekle ③ Sonucu bir **aktivasyon fonksiyonundan** geçirip çıkış üret.
 
 | Biyolojik sinir sistemi | Yapay sinir ağı |
 |---|---|
 | Nöron | Nöron / düğüm / perceptron |
-| Dendrit | Giriş $x_i$ |
-| Sinaps gücü | Ağırlık $w_i$ |
+| Dendrit | Giriş |
+| Sinaps gücü | Ağırlık |
 | Uyarıcı / baskılayıcı sinaps | Pozitif / negatif ağırlık |
-| Soma'da toplama | $\sum w_i x_i$ |
-| Eşik potansiyeli (−55 mV) | Bias $\theta$ + aktivasyon fonksiyonu |
+| Soma'da toplama | Ağırlıklı toplam |
+| Eşik potansiyeli (−55 mV) | Bias (eşik) + aktivasyon fonksiyonu |
 | Hepsi ya da hiç | Basamak fonksiyonu (sigmoid/ReLU yumuşak versiyonları) |
-| Akson | Çıkış $y$ |
+| Akson | Çıkış |
 | Sinaptik plastisite (Hebb, LTP) | Ağırlık güncelleme (geri yayılım) |
 | Duyu → talamus → korteks katmanları | Giriş katmanı → gizli katmanlar → çıkış katmanı |
 | Görme korteksindeki kenar algılayan hücreler (Hubel & Wiesel) | **Evrişimli sinir ağları (CNN)** |
 
-**Tarihçe:** McCulloch & Pitts nöron modeli (**1943**) → Hebb öğrenme kuralı (**1949**) → Rosenblatt **Perceptron** (**1958**) → Çok katmanlı ağlar + **geri yayılım** (1986, Rumelhart, Hinton, Williams) → **Derin öğrenme** (2010'lar).
+**Tarihçe:** McCulloch & Pitts nöron modeli (**1943**) → Hebb öğrenme kuralı (**1949**) → Rosenblatt **Perceptron** (**1958**) → Minsky & Papert, XOR eleştirisi (**1969**) → Çok katmanlı ağlar + **geri yayılım** (1986, Rumelhart, Hinton, Williams) → **Derin öğrenme** (2010'lar).
 
-**Önemli farklar:** Beyin ~20 W ile çalışır, **paralel** ve **çok seyrek** ateşleme yapar, zaman (spike) bilgisini kullanır; yapay ağlar ise çok daha fazla enerji ve veri ister. Beynin ateşleme (spike) tabanlı çalışmasını taklit eden modellere **Spiking Neural Networks**, bunlara özel çiplere **nöromorfik çipler** denir.
+### Görme Korteksi ↔ Derin Öğrenme: Hiyerarşik İşleme
+
+Beyin görüntüyü **katman katman, basitten karmaşığa** işler; derin sinir ağları da tam olarak böyle öğrenir:
+
+| Beyin (görme yolu) | Algıladığı | Derin ağ (CNN) |
+|---|---|---|
+| Retina | Işık noktaları | Giriş (pikseller) |
+| **V1** (birincil görme korteksi) | **Kenarlar, çizgiler, yönler** | İlk katmanlar |
+| V2 / V4 | Köşeler, dokular, şekiller, renk | Orta katmanlar |
+| **IT korteksi** (alt temporal) | **Nesneler, yüzler** | Son katmanlar → "kedi" |
+
+### Beyin ↔ Bilgisayar
+
+| | **Beyin** | **Bilgisayar / Yapay sinir ağı** |
+|---|---|---|
+| İşleme | **Muazzam paralel** (milyarlarca nöron aynı anda) | Çoğunlukla seri (GPU ile kısmen paralel) |
+| Hız | Nöron yavaş (milisaniye) | İşlemci çok hızlı (nanosaniye) |
+| Enerji | ~**20 watt** | Büyük modellerin eğitimi **megawatt** düzeyinde |
+| Bellek ve işlem | **Aynı yerde** (sinapslar) | **Ayrı** (bellek ↔ işlemci) |
+| Hata toleransı | Yüksek — birkaç nöron ölse de çalışır | Düşük — bir bit hatası programı çökertebilir |
+| Öğrenme | Az örnekle, sürekli, ömür boyu | Çok veri, genelde bir kez eğitilir |
+
+Beynin ateşleme (spike) tabanlı çalışmasını taklit eden modellere **Spiking Neural Networks**, bunlara özel çiplere **nöromorfik çipler** denir.
 
 ## 7.8 Aktivasyon Fonksiyonları (Yapay "Ateşleme" Kuralları)
 
-| Fonksiyon | Formül | Çıkış aralığı | Not |
+| Fonksiyon | Davranışı | Çıkış aralığı | Not |
 |---|---|---|---|
-| **Basamak (step)** | $f(x) = 1$ eğer $x > 0$, değilse $0$ | {0, 1} | **"Hepsi ya da hiç"** — McCulloch–Pitts, perceptron |
-| **Sigmoid** | $\frac{1}{1+e^{-x}}$ | (0, 1) | Olasılık gibi yorumlanır; derin ağlarda **gradyan kaybolması** sorunu |
-| **Tanh** | $\frac{e^x - e^{-x}}{e^x + e^{-x}}$ | (−1, 1) | Sıfır merkezli sigmoid |
-| **ReLU** | $\max(0, x)$ | [0, ∞) | Derin öğrenmede en yaygın; hızlı. Biyolojideki "eşik altı → sessiz" davranışına benzer |
-| **Softmax** | $\frac{e^{x_i}}{\sum_j e^{x_j}}$ | (0, 1), toplam = 1 | **Çok sınıflı** çıkış katmanı (her sınıf için olasılık) |
+| **Basamak (step)** | Toplam eşiği aşarsa 1, aşmazsa 0 | 0 veya 1 | **"Hepsi ya da hiç"** — McCulloch–Pitts, perceptron |
+| **Sigmoid** | Yumuşak "S" eğrisi | 0 ile 1 arası | Olasılık gibi yorumlanır; derin ağlarda **gradyan kaybolması** sorunu |
+| **Tanh** | "S" eğrisi, sıfır merkezli | −1 ile 1 arası | Sigmoid'in sıfır merkezli hâli |
+| **ReLU** | Negatifse 0, pozitifse kendisi | 0 ve üstü | Derin öğrenmede en yaygın; hızlı. Biyolojideki "eşik altı → sessiz" davranışına benzer |
+| **Softmax** | Çıkışları olasılık dağılımına çevirir | Hepsi 0–1, **toplamı 1** | **Çok sınıflı** çıkış katmanı (her sınıf için olasılık) |
 
-> ⚠️ Aktivasyon fonksiyonu **doğrusal olmamalıdır**; yoksa kaç katman eklersen ekle ağ tek bir doğrusal fonksiyona indirgenir.
+> ⚠️ Aktivasyon fonksiyonu **doğrusal olmamalıdır**; yoksa kaç katman eklersen ekle ağ tek bir doğrusal fonksiyona indirgenir ve karmaşık örüntüleri öğrenemez.
 
-## 7.9 ✍️ Perceptron'u Elle Eğitme ve XOR Problemi
+## 7.9 Perceptron, Öğrenme ve XOR Problemi
 
-**Perceptron öğrenme kuralı** (Rosenblatt, 1958):
+**Perceptron nasıl öğrenir?** (Rosenblatt, 1958) Her örnekte tahmin yapar, **doğru cevapla karşılaştırır:**
+- Doğru tahmin ettiyse → ağırlıklara **dokunmaz**
+- "1" demesi gerekirken "0" dediyse → o örnekte aktif olan girişlerin ağırlıklarını **artırır**
+- "0" demesi gerekirken "1" dediyse → ilgili ağırlıkları **azaltır**
+- Hiç hata yapmadığı bir tur olana kadar devam eder. Değişimin büyüklüğünü **öğrenme oranı** belirler.
 
-$$
-y = \begin{cases}1 & \text{net} = w_1x_1 + w_2x_2 + b > 0\\ 0 & \text{aksi halde}\end{cases}
-\qquad
-\begin{aligned} e &= t - y \quad (t: \text{hedef})\\ w_i &\leftarrow w_i + \eta\, e\, x_i\\ b &\leftarrow b + \eta\, e \end{aligned}
-$$
-
-**Görev: VE (AND) kapısını öğren.** Başlangıç: $w_1 = 0.3,\ w_2 = 0.2,\ b = -0.1,\ \eta = 0.1$
-
-| Epok | $(x_1, x_2)$ | $t$ | net | $y$ | $e$ | Yeni $w_1,\ w_2,\ b$ |
-|---|---|---|---|---|---|---|
-| 1 | (0,0) | 0 | −0.1 | 0 | 0 | 0.3, 0.2, −0.1 |
-| 1 | (0,1) | 0 | +0.1 | 1 | **−1** | 0.3, **0.1**, **−0.2** |
-| 1 | (1,0) | 0 | +0.1 | 1 | **−1** | **0.2**, 0.1, **−0.3** |
-| 1 | (1,1) | 1 | 0.0 | 0 | **+1** | **0.3**, **0.2**, **−0.2** |
-| 2 | (0,0) | 0 | −0.2 | 0 | 0 | 0.3, 0.2, −0.2 |
-| 2 | (0,1) | 0 | 0.0 | 0 | 0 | 0.3, 0.2, −0.2 |
-| 2 | (1,0) | 0 | +0.1 | 1 | **−1** | **0.2**, 0.2, **−0.3** |
-| 2 | (1,1) | 1 | +0.1 | 1 | 0 | 0.2, 0.2, −0.3 |
-| 3 | (0,0) | 0 | −0.3 | 0 | 0 | — |
-| 3 | (0,1) | 0 | −0.1 | 0 | 0 | — |
-| 3 | (1,0) | 0 | −0.1 | 0 | 0 | — |
-| 3 | (1,1) | 1 | +0.1 | 1 | 0 | — ✅ **Hiç hata yok → öğrendi** |
-
-> **Öğrenilen nöron:** $0.2\,x_1 + 0.2\,x_2 - 0.3 > 0$ → sadece iki giriş de 1 iken net = 0.1 > 0. Hata olduğunda ağırlığın değişmesi = biyolojide **sinapsın güçlenmesi/zayıflaması.**
+> 🧠 Bu, biyolojideki **sinapsın güçlenmesi / zayıflaması** ile aynı fikirdir. **Perceptron yakınsama teoremi:** Problem doğrusal ayrılabilirse perceptron **sonlu adımda** doğru ağırlıkları mutlaka bulur.
 
 ![Perceptron ve XOR](images/perceptron_xor.png)
 
-**XOR problemi:** AND ve OR noktaları **tek bir doğruyla** ayrılabilir (doğrusal ayrılabilir) → tek perceptron öğrenir. **XOR** (girişler farklıysa 1) için **tek doğru yoktur** → tek katmanlı perceptron **asla** öğrenemez. Minsky & Papert bunu **1969**'da gösterdi ve YSA araştırmaları uzun süre durdu (YZ kışına katkı). Çözüm: **gizli katman** ekleyip **çok katmanlı perceptron (MLP)** + **geri yayılım** (1986). Gizli katman iki doğru çizer (örn. bir nöron OR, bir nöron NAND), çıkış nöronu bunları VE'ler.
+**XOR problemi:** AND ve OR noktaları **tek bir doğruyla** ayrılabilir (**doğrusal ayrılabilir**) → tek perceptron öğrenir. **XOR** (girişler farklıysa 1) için **tek doğru yoktur** → tek katmanlı perceptron **asla** öğrenemez. Minsky & Papert bunu **1969**'da gösterdi ve YSA araştırmaları uzun süre durdu (YZ kışına katkı). Çözüm: **gizli katman** ekleyip **çok katmanlı perceptron (MLP)** + **geri yayılım** (1986). Gizli katman iki ayrı sınır çizer, çıkış nöronu bunları birleştirir.
+
+**Geri yayılım (backpropagation) özet:** ① Giriş ağdan ileri geçirilir, tahmin üretilir ② Tahmin ile gerçek cevap arasındaki **hata** hesaplanır ③ Hata çıkıştan girişe doğru **geriye** dağıtılır: her ağırlığın hataya ne kadar katkı yaptığı bulunur ④ Her ağırlık hatayı **azaltacak yönde** biraz değiştirilir (**gradyan inişi**) ⑤ Binlerce kez tekrarlanır.
 
 ---
 
@@ -1621,39 +1445,43 @@ $$
 
 ---
 
-# 10. Sınav Öncesi Hızlı Tekrar ve Formül Kağıdı
+# 10. Sınav Öncesi Hızlı Tekrar
 
 ### 🐜 ACO
-- **Dorigo, 1992**, Ant System, sürü zekâsı, meta-sezgisel, **TSP**
+- **Dorigo, 1992**, Ant System, **sürü zekâsı**, meta-sezgisel, **ayrık** problemler, klasik örnek **TSP**
 - **Feromon** + **stigmerji** (ortam aracılığıyla dolaylı iletişim) + **pozitif geri besleme** + **buharlaşma**
-- $p_{ij} = \dfrac{\tau_{ij}^{\alpha}\,\eta_{ij}^{\beta}}{\sum_{l}\tau_{il}^{\alpha}\,\eta_{il}^{\beta}}$, &nbsp; $\eta_{ij} = 1/d_{ij}$
-- $\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij} + \sum_k Q/L_k$
-- α = feromon önemi, β = mesafe önemi, ρ = buharlaşma (erken yakınsamayı önler), tabu listesi = hafıza
-- α = 0 → greedy; β = 0 → sadece feromon (durgunluk)
-- Çeşitler: AS, Elitist AS, Rank AS, **ACS** ($q_0$, yerel güncelleme), **MMAS** ($\tau_{min}$–$\tau_{max}$)
+- Geçiş kuralı: **feromon (geçmiş deneyim) + yakınlık (anlık bilgi)** → olasılıksal **rulet** seçimi
+- Buharlaşma: kötü yolları unutturur, **erken yakınsamayı önler** · Feromon bırakma: **kısa tur = çok feromon**
+- α = feromon önemi, β = mesafe önemi, ρ = buharlaşma oranı, **tabu listesi** = hafıza
+- α = 0 → açgözlü (en yakın komşu); β = 0 → sadece feromon (durgunluk); ρ = 0 → hiç unutmaz; ρ = 1 → hiç hatırlamaz
+- **Keşif ↔ sömürü** dengesi; **durgunluk** = herkes aynı turu üretir
+- Çeşitler: AS (herkes bırakır), Elitist (en iyiye bonus), Rank, **ACS** (q₀ + yerel güncelleme), **MMAS** (alt–üst sınır)
 - Uygulama: rota (VRP), ağ yönlendirme (AntNet), çizelgeleme, robot yolu, özellik seçimi
+- Öz-örgütlenme: pozitif + negatif geri besleme + rastgelelik + çoklu etkileşim
 
 ### 🔥 Ateşböceği
-- **Yang, 2008**; sürekli optimizasyon; çok tepeli problemlerde güçlü
-- 3 kural: tek cinsiyet · çekicilik ∝ parlaklık, mesafeyle azalır · parlaklık = amaç fonksiyonu
-- $\beta = \beta_0 e^{-\gamma r^2}$, &nbsp; $x_i \leftarrow x_i + \beta_0 e^{-\gamma r_{ij}^2}(x_j - x_i) + \alpha\epsilon_i$
-- γ → 0: PSO benzeri; γ → ∞: rastgele arama; karmaşıklık $O(n^2 t)$
-- Elle adım: $r^2$ → $\beta = \beta_0 e^{-\gamma r^2}$ → çekim $\beta(x_j - x_i)$ + rastgele $\alpha\epsilon$ → yeni konum → parlaklık arttı mı?
+- **Yang, 2008**; **sürekli** optimizasyon; çok tepeli problemlerde güçlü (otomatik alt gruplara bölünme)
+- 3 kural: tek cinsiyet · çekicilik parlaklıkla artar, mesafeyle azalır · parlaklık = amaç fonksiyonu
+- Hareket = **parlağa doğru çekim** (sömürü) + **rastgele adım** (keşif)
+- γ → 0: PSO benzeri; γ → ∞: rastgele arama; γ orta: alt gruplar · karesel karmaşıklık
 
 ### 📚 Uzman Sistem
 - Bilgi tabanı + **çıkarım motoru** + çalışma belleği + arayüz + **açıklama** + bilgi edinme
+- **Bilgi ile çıkarım motoru ayrıdır** → kabuk (shell) mantığı
 - **İleri zincirleme** (veri → sonuç, XCON) / **Geri zincirleme** (hedef → veri, MYCIN)
 - DENDRAL (ilk), MYCIN (tıp, CF), XCON (konfigürasyon), PROSPECTOR (maden)
-- En büyük sorun: **bilgi edinme darboğazı**, öğrenememe, kırılganlık
+- En büyük sorun: **bilgi edinme darboğazı**, öğrenememe, kırılganlık, sağduyu yok
 
 ### 🧩 Çıkarım
 - **Tümdengelim** (genel → özel, kesin; uzman sistem) · **Tümevarım** (örnek → genel, olası; ML) · **Abdüksiyon** (gözlem → en iyi açıklama; teşhis)
-- **Modus Ponens:** p→q, p ⊢ q · **Modus Tollens:** p→q, ¬q ⊢ ¬p · **Çözünürlük:** p∨q, ¬q∨r ⊢ p∨r (Prolog)
+- **Modus Ponens** (A ise B, A var → B) · **Modus Tollens** (A ise B, B yok → A yok) · **Çözünürlük** (Prolog, çelişkiyle ispat)
+- Tuzak: **sonucu onaylama** ("yol ıslak → yağmur yağdı") geçersiz
 - İleri zincirleme döngüsü: **eşleştir → çakışma çözümü → tetikle → tekrarla**; geri zincirleme: hedef yığını, eksik bilgiyi kullanıcıya sorar
 - Çakışma çözümü: refraksiyon, yenilik, **özgüllük**, öncelik (salience); hızlandırma: **Rete**
-- **CF:** VE → min, VEYA → max, sonuç = CF(koşul)·CF(kural); birleştirme (+,+): $CF_1 + CF_2(1-CF_1)$; (+,−): $\frac{CF_1+CF_2}{1-\min(|CF_1|,|CF_2|)}$
-- **Bayes:** $P(H|E) = \frac{P(E|H)P(H)}{P(E)}$ — önsel × olabilirlik → sonsal; nadir hastalıkta pozitif test ≠ hasta (%1, %90, %5 → **%15.4**)
-- **Bulanık (Mamdani):** bulanıklaştır → kural (VE=min, VEYA=max) → birleştir (max) → **durulaştır (ağırlık merkezi)**; Zadeh 1965
+- **CF** (−1…+1): VE → en zayıf halka, VEYA → en güçlü; iki destekleyici kanıt güveni artırır, karşı kanıt düşürür
+- **Bayes:** önsel → kanıt → sonsal; **taban oranı yanılgısı** (nadir hastalıkta pozitif test çoğunlukla yanlış alarm)
+- **Bulanık (Mamdani, Zadeh 1965):** bulanıklaştır → kural (VE = en küçük, VEYA = en büyük) → birleştir → **durulaştır (ağırlık merkezi)**
+- **Kapalı dünya** (bilinmeyen = yanlış, Prolog) · **monoton olmayan** akıl yürütme (Tweety penguen) · sembolik ↔ bağlantıcı YZ
 - ML'de çıkarım = eğitilmiş modelle **tahmin** (sadece ileri geçiş)
 
 ### 🤖 Agentic AI
@@ -1665,15 +1493,15 @@ $$
 - ReAct: **Düşünce → Eylem (araç) → Gözlem** tekrarı · Desenler: yansıtma, araç, planlama, çoklu ajan · RAG, MCP
 
 ### 📊 ML Ölçütleri
-- Doğruluk = (TP+TN)/Toplam · Kesinlik = TP/(TP+FP) · **Duyarlılık = TPR = TP/(TP+FN)**
-- Özgüllük = TN/(TN+FP) · **FPR = FP/(FP+TN) = 1 − Özgüllük** · F1 = 2PR/(P+R)
-- FP = Tip I (yanlış alarm), FN = Tip II (kaçırma)
-- **ROC:** y = TPR, x = FPR, tüm eşikler; **AUC:** 1 = mükemmel, 0.5 = rastgele
-- Dengesiz veride doğruluk yanıltır → F1 / AUC
-- Entropi = −p log₂p − q log₂q; Gain(S,A) = Entropi(S) − Σ (|Sᵥ|/|S|)·Entropi(Sᵥ)
-- **ROC'u elle çiz:** skorları sırala, her P'de 1/P yukarı, her N'de 1/N sağa; **AUC = doğru sıralı (P,N) çifti / P·N**
+- **Kesinlik:** "pozitif" dediklerimin ne kadarı doğru? · **Duyarlılık (TPR):** gerçek pozitiflerin ne kadarını yakaladım?
+- **Özgüllük:** gerçek negatiflerin ne kadarına "negatif" dedim? · **FPR:** sağlamlara verilen yanlış alarm oranı · **F1:** kesinlik + duyarlılık dengesi
+- FP = Tip I (yanlış alarm), FN = Tip II (kaçırma) · Kanser → duyarlılık, spam → kesinlik
+- **ROC:** y = TPR, x = FPR, tüm eşikler; sol üst köşe ideal, köşegen rastgele · **AUC:** 1 = mükemmel, 0.5 = rastgele, eşikten bağımsız
+- Dengesiz veride doğruluk yanıltır → F1 / AUC / PR eğrisi
+- **Entropi** = belirsizlik (saf küme 0, yarı yarıya en yüksek); **bilgi kazancı** en büyük özellik ağaçta köke
 - Çok sınıflı matris: satır = gerçek → duyarlılık; sütun = tahmin → kesinlik; makro = sınıf ortalaması, mikro = doğruluk
-- KNN: K değişince sonuç değişebilir, K tek seçilir · Naive Bayes: $P(c)\prod P(x_i|c)$, sıfır frekans → Laplace
+- KNN: K değişince sonuç değişir, K tek seçilir, normalizasyon şart · Naive Bayes: bağımsızlık varsayımı, sıfır frekans → Laplace
+- **Yanlılık ↔ varyans** = eksik ↔ aşırı öğrenme · eğitim / doğrulama / test · veri sızıntısı
 
 ### ⚡ Nöron
 - Dendrit (al) → Soma (topla) → Akson tepeciği (eşik) → Akson (ilet) → Sinaps (aktar)
@@ -1681,8 +1509,9 @@ $$
 - **Hepsi ya da hiç**; şiddet → **frekansla** kodlanır
 - Nöron içi **elektriksel**, nöronlar arası **kimyasal** (Ca²⁺ → vezikül → nörotransmitter → reseptör)
 - Uyaran → **reseptör (transdüksiyon)** → duyusal nöron → omurilik → **talamus** → korteks → karar → motor nöron → kas
-- **Hebb:** birlikte ateşlenen nöronlar birbirine bağlanır → YSA'da ağırlık güncelleme ($\Delta w = \eta x y$)
-- **Perceptron:** $w \leftarrow w + \eta (t - y) x$; AND/OR öğrenir, **XOR öğrenemez** (doğrusal ayrılamaz → gizli katman, Minsky & Papert 1969)
+- **Hebb:** birlikte ateşlenen nöronlar birbirine bağlanır → YSA'da ağırlık güncelleme
+- **Perceptron:** hata yapınca ağırlığı düzeltir; AND/OR öğrenir, **XOR öğrenemez** (doğrusal ayrılamaz → gizli katman, Minsky & Papert 1969)
+- Görme korteksi (V1 kenar → IT nesne) ↔ CNN katmanları · beyin ~20 W, paralel, hataya dayanıklı
 
 ---
 
@@ -1695,21 +1524,21 @@ $$
 <details>
 <summary><b>S1.</b> Karınca kolonisi optimizasyonunun temel çalışma prensibini açıklayınız.</summary>
 
-Gerçek karıncalar yürürken feromon bırakır ve yol seçerken feromonu yoğun olan yolu daha yüksek olasılıkla seçer. Kısa yoldaki karıncalar daha çabuk döndüğü için kısa yolda feromon daha hızlı birikir; bu **pozitif geri besleme** ile koloni en kısa yola yakınsar. Feromonun **buharlaşması** ise kötü yolların unutulmasını sağlar. ACO bunu taklit eder: yapay karıncalar **olasılık kuralıyla** ($\tau^\alpha\eta^\beta$) çözüm (tur) oluşturur, her iterasyon sonunda feromon **buharlaştırılır** ve iyi (kısa) turlara $Q/L_k$ kadar **feromon eklenir.** İterasyonlar ilerledikçe feromon en iyi çözüm üzerinde yoğunlaşır.
+Gerçek karıncalar yürürken feromon bırakır ve yol seçerken feromonu yoğun olan yolu daha yüksek olasılıkla seçer. Kısa yoldaki karıncalar daha çabuk döndüğü için kısa yolda feromon daha hızlı birikir; bu **pozitif geri besleme** ile koloni en kısa yola yakınsar. Feromonun **buharlaşması** ise kötü yolların unutulmasını sağlar. ACO bunu taklit eder: yapay karıncalar **feromon ve yakınlığa dayalı olasılık kuralıyla** çözüm (tur) oluşturur, her iterasyon sonunda feromon **buharlaştırılır** ve iyi (kısa) turlara **daha çok feromon eklenir.** İterasyonlar ilerledikçe feromon en iyi çözüm üzerinde yoğunlaşır.
 
 </details>
 
 <details>
 <summary><b>S2.</b> Stigmerji nedir? ACO ile ilişkisi nedir?</summary>
 
-Stigmerji, bireylerin **ortamı değiştirerek dolaylı yoldan** iletişim kurmasıdır. Karıncalar birbirine doğrudan mesaj göndermez; yere feromon bırakarak ortamı değiştirir, diğer karıncalar bu değişikliğe göre davranır. ACO'da ortam = graf, feromon = kenarlardaki $\tau_{ij}$ değerleridir; karıncalar sadece bu değerler üzerinden "haberleşir".
+Stigmerji, bireylerin **ortamı değiştirerek dolaylı yoldan** iletişim kurmasıdır. Karıncalar birbirine doğrudan mesaj göndermez; yere feromon bırakarak ortamı değiştirir, diğer karıncalar bu değişikliğe göre davranır. ACO'da ortam = problemin grafı, feromon = kenarlarda tutulan değerlerdir; karıncalar sadece bu değerler üzerinden "haberleşir".
 
 </details>
 
 <details>
-<summary><b>S3.</b> Geçiş olasılığı formülünü yazınız ve her terimi açıklayınız.</summary>
+<summary><b>S3.</b> ACO'da bir karınca bir sonraki şehri neye göre seçer? α ve β'nın rolü nedir?</summary>
 
-$p_{ij}^k = \dfrac{\tau_{ij}^\alpha \eta_{ij}^\beta}{\sum_{l \in N_i^k} \tau_{il}^\alpha \eta_{il}^\beta}$ — $\tau_{ij}$: kenardaki feromon (geçmiş deneyim), $\eta_{ij} = 1/d_{ij}$: sezgisel bilgi (yakınlık), α: feromonun önemi, β: sezgisel bilginin önemi, $N_i^k$: k. karıncanın henüz ziyaret etmediği şehirler (tabu listesi dışı). Payda normalizasyon içindir (olasılıkların toplamı 1).
+İki bilgiye bakar: **feromon** (o kenarın geçmişte ne kadar iyi bulunduğu — koloninin hafızası) ve **sezgisel bilgi** (şehrin ne kadar yakın olduğu — anlık açgözlü bilgi). İkisi ne kadar yüksekse seçilme olasılığı o kadar büyüktür. **α** feromonun, **β** yakınlığın ağırlığını belirler. Sadece **ziyaret edilmemiş** (tabu listesinde olmayan) şehirler aday olur ve seçim **rulet tekerleğiyle olasılıksal** yapılır; böylece en iyi görünen yol çoğunlukla, ama her zaman değil, seçilir (keşif).
 
 </details>
 
@@ -1728,23 +1557,23 @@ Buharlaşma, eski/kötü çözümlerin feromonunu azaltarak **erken yakınsamay�
 </details>
 
 <details>
-<summary><b>S6.</b> (Sayısal) A'daki karınca için B (d=2), C (d=5), D (d=4) şehirleri var; tüm τ = 1, α = 1, β = 2. Gitme olasılıklarını hesaplayınız.</summary>
+<summary><b>S6.</b> Rulet tekerleği seçimi nedir? ACO'da neden en olası şehir doğrudan seçilmez?</summary>
 
-$\eta^2$: B = 0.25, C = 0.04, D = 0.0625 → toplam 0.3525 → **P(B) = 0.709, P(C) = 0.113, P(D) = 0.177.** (Bkz. Bölüm 1.7)
+Her aday şehre, seçilme olasılığı kadar büyük bir **dilim** verilir ve tekerlek rastgele çevrilir. En cazip şehrin dilimi büyük olduğu için **çoğunlukla** o seçilir ama küçük dilimler de arada seçilir. Her zaman en olası şehir seçilseydi algoritma **açgözlü** davranır, hep aynı turu üretir ve **yerel optimuma takılırdı**; olasılıksal seçim **keşfi** sağlar.
 
 </details>
 
 <details>
-<summary><b>S7.</b> (Sayısal) ρ = 0.5, Q = 10, τ = 1. Uzunluğu 11 olan tur ve uzunluğu 18 olan tur aynı kenarı kullanıyorsa o kenarın yeni feromonu nedir?</summary>
+<summary><b>S7.</b> Durgunluk (stagnation) nedir? Nedenleri ve önlemleri nelerdir?</summary>
 
-$\tau = (1-0.5)\cdot 1 + 10/11 + 10/18 = 0.5 + 0.909 + 0.556 = \mathbf{1.965}$
+Tüm karıncaların aynı (çoğu zaman optimum olmayan) turu üretmeye başlamasıdır; feromon tek yolda öyle birikir ki başka yol seçilmez. **Nedenleri:** α'nın çok büyük, buharlaşmanın çok küçük olması, aşırı elitizm. **Önlemler:** MMAS'taki feromon alt–üst sınırları, ACS'deki yerel güncelleme, feromonu yeniden başlatma, buharlaşmayı artırma.
 
 </details>
 
 <details>
 <summary><b>S8.</b> Yapay karıncaların gerçek karıncalardan farkları nelerdir?</summary>
 
-1) **Hafızaları vardır** (tabu listesi — aynı şehre tekrar gitmezler). 2) **Sezgisel bilgi** ($\eta = 1/d$) kullanırlar, gerçek karıncalar mesafeyi bilmez. 3) Feromonu genelde **tur bittikten sonra** ve **çözüm kalitesine göre** ($Q/L_k$) bırakırlar. 4) **Ayrık zamanda** (iterasyonlarla) çalışırlar. 5) Elitizm, feromon sınırları gibi doğada olmayan ek mekanizmalar kullanılabilir.
+1) **Hafızaları vardır** (tabu listesi — aynı şehre tekrar gitmezler). 2) **Sezgisel bilgi** (yakınlık) kullanırlar, gerçek karıncalar mesafeyi bilmez. 3) Feromonu genelde **tur bittikten sonra** ve **çözüm kalitesine göre** bırakırlar. 4) **Ayrık zamanda** (iterasyonlarla) çalışırlar. 5) Elitizm, feromon sınırları gibi doğada olmayan ek mekanizmalar kullanılabilir.
 
 </details>
 
@@ -1758,14 +1587,14 @@ Kargo/dağıtım araçlarının rota planlaması (VRP), internet/telekom ağlar�
 <details>
 <summary><b>S10.</b> ACS (Ant Colony System) ve MMAS, temel Ant System'den nasıl farklıdır?</summary>
 
-**ACS:** $q_0$ olasılıkla en iyi kenarı doğrudan seçer (sömürü), değilse olasılık kuralını kullanır; karınca bir kenardan geçince o kenarın feromonunu **azaltır (yerel güncelleme)** → diğerleri farklı yolları dener; global güncellemeyi sadece en iyi karınca yapar. **MMAS:** feromonu $[\tau_{min}, \tau_{max}]$ arasında sınırlar ve sadece en iyi karıncanın feromon bırakmasına izin verir → durgunluk önlenir.
+**ACS:** q₀ olasılıkla en iyi kenarı doğrudan seçer (sömürü), değilse olasılık kuralını kullanır; karınca bir kenardan geçince o kenarın feromonunu **azaltır (yerel güncelleme)** → diğerleri farklı yolları dener; global güncellemeyi sadece en iyi karınca yapar. **MMAS:** feromonu bir **alt ve üst sınır** arasında tutar ve sadece en iyi karıncanın feromon bırakmasına izin verir → durgunluk önlenir.
 
 </details>
 
 <details>
 <summary><b>S11.</b> (ACO) ACS'deki q₀ parametresi ve yerel feromon güncellemesi ne işe yarar?</summary>
 
-q ≤ q₀ ise karınca $\tau\eta^\beta$ değeri **en büyük** kenarı doğrudan seçer (**sömürü**); q > q₀ ise klasik olasılık kuralını kullanır (**keşif**). q₀ büyüdükçe algoritma daha açgözlü olur. **Yerel güncelleme** $\tau \leftarrow (1-\xi)\tau + \xi\tau_0$ ile karınca geçtiği kenarın feromonunu **azaltır**; böylece aynı iterasyondaki diğer karıncalar aynı yolu izlemek yerine farklı yolları dener → çeşitlilik artar, erken yakınsama önlenir.
+Rastgele çekilen sayı q₀'dan küçükse karınca feromon ve yakınlığı en yüksek olan kenarı **doğrudan** seçer (**sömürü**); değilse klasik olasılık kuralını kullanır (**keşif**). q₀ büyüdükçe algoritma daha açgözlü olur. **Yerel güncellemede** karınca geçtiği kenarın feromonunu biraz **azaltır**; böylece aynı iterasyondaki diğer karıncalar aynı yolu izlemek yerine farklı yolları dener → çeşitlilik artar, erken yakınsama önlenir.
 
 </details>
 
@@ -1779,9 +1608,9 @@ q ≤ q₀ ise karınca $\tau\eta^\beta$ değeri **en büyük** kenarı doğruda
 </details>
 
 <details>
-<summary><b>S13.</b> Hareket denklemini yazınız; γ → 0 ve γ → ∞ durumlarını yorumlayınız.</summary>
+<summary><b>S13.</b> Ateşböceğinin hareketini oluşturan bileşenleri açıklayınız; γ → 0 ve γ → ∞ durumlarını yorumlayınız.</summary>
 
-$x_i \leftarrow x_i + \beta_0 e^{-\gamma r_{ij}^2}(x_j - x_i) + \alpha\epsilon_i$. **γ → 0:** çekicilik mesafeden bağımsız, herkes en parlağı görür → PSO'ya benzer. **γ → ∞:** çekicilik sıfır, kimse kimseyi görmez → rastgele arama.
+Sönük ateşböceği iki hareketin toplamıyla yer değiştirir: **parlak olana doğru çekim** (mesafe arttıkça zayıflar → sömürü) ve **küçük rastgele adım** (keşif). **γ → 0:** ışık soğurulmaz, çekicilik mesafeden bağımsız, herkes en parlağı görür → PSO'ya benzer. **γ → ∞:** çekicilik hemen sıfırlanır, kimse kimseyi görmez → rastgele arama.
 
 </details>
 
@@ -1793,9 +1622,9 @@ $x_i \leftarrow x_i + \beta_0 e^{-\gamma r_{ij}^2}(x_j - x_i) + \alpha\epsilon_i
 </details>
 
 <details>
-<summary><b>S15.</b> (Sayısal, Ateşböceği) β₀ = 1, γ = 0.1, α = 0.2, ε = (0.1, −0.3). x_i = (4, 2), daha parlak x_j = (1, 1). x_i'nin yeni konumu nedir?</summary>
+<summary><b>S15.</b> Sürü zekâsı nedir? Öz-örgütlenmenin bileşenlerini ACO üzerinden açıklayınız.</summary>
 
-r² = 9 + 1 = 10 → β = e⁻¹ = 0.368 → çekim = 0.368·(−3, −1) = (−1.104, −0.368); rastgele = (0.02, −0.06) → **yeni konum = (2.916, 1.572)**. Bkz. Bölüm 2.4.
+Merkezi bir lider olmadan, basit kurallara uyan çok sayıda bireyin etkileşiminden akıllı toplu davranışın ortaya çıkmasıdır. Bileşenler: **pozitif geri besleme** (çok feromon → çok karınca), **negatif geri besleme** (buharlaşma), **rastgelelik** (olasılıksal yol seçimi) ve **çoklu etkileşim** (karıncaların feromon üzerinden birbirini etkilemesi). Örnekler: ACO, PSO, ateşböceği, yapay arı kolonisi (Karaboğa, 2005).
 
 </details>
 
@@ -1860,23 +1689,23 @@ Aynı anda birden fazla kuralın koşulu sağlandığında hangisinin önce çal
 </details>
 
 <details>
-<summary><b>S24.</b> (Sayısal) R1: ateş ∧ öksürük → grip (CF 0.7), R2: kas ağrısı → grip (CF 0.5). CF(ateş) = 0.9, CF(öksürük) = 0.6, CF(kas ağrısı) = 0.8. Grip'in güven faktörü nedir?</summary>
+<summary><b>S24.</b> MYCIN'in güven faktörü (CF) yaklaşımını açıklayınız.</summary>
 
-R1: min(0.9, 0.6) × 0.7 = **0.42** · R2: 0.8 × 0.5 = **0.40** · Birleşim: 0.42 + 0.40 × (1 − 0.42) = **0.652**
+Her olgu ve kurala uzman tarafından **−1 (kesin yanlış) ile +1 (kesin doğru)** arası bir güven değeri verilir. Koşullar VE ile bağlıysa **en zayıf** olanın güveni, VEYA ile bağlıysa **en güçlü** olanınki alınır; sonucun güveni koşulun ve kuralın güveniyle birlikte zayıflar. Aynı sonucu destekleyen iki bağımsız kanıt güveni **artırır** (ama +1'i aşmaz), karşı kanıt **düşürür**. Zayıf yanı: olasılık teorisine dayanmaz, kuralların bağımsız olduğunu varsayar.
 
 </details>
 
 <details>
-<summary><b>S25.</b> (Sayısal) Hastalık sıklığı %1, test duyarlılığı %90, yanlış pozitif oranı %5. Pozitif test sonucu alan kişinin hasta olma olasılığı nedir?</summary>
+<summary><b>S25.</b> Bayes teoremindeki önsel ve sonsal olasılık nedir? Taban oranı yanılgısını örnekle açıklayınız.</summary>
 
-$P(H|+) = \frac{0.9 \times 0.01}{0.9 \times 0.01 + 0.05 \times 0.99} = \frac{0.009}{0.0585} \approx \mathbf{0.154}$. Hastalık nadir olduğundan pozitiflerin çoğu yanlış alarmdır (taban oranı yanılgısı).
+**Önsel** olasılık kanıt gelmeden önceki inanç (hastalığın toplumdaki yaygınlığı), **sonsal** olasılık kanıttan sonra güncellenmiş inançtır (test pozitif çıktıktan sonra hasta olma ihtimali). **Taban oranı yanılgısı:** Hastalık çok nadirse, oldukça iyi bir test bile pozitif çıktığında kişi büyük ihtimalle sağlamdır; çünkü çok kalabalık olan sağlam nüfusun küçük bir yüzdesine verilen yanlış alarmlar, az sayıdaki gerçek hastadan fazladır. Bu yüzden pozitif sonuç ikinci bir testle doğrulanır.
 
 </details>
 
 <details>
 <summary><b>S26.</b> Bulanık çıkarımın (Mamdani) adımlarını açıklayınız.</summary>
 
-1) **Bulanıklaştırma:** keskin girdiler üyelik fonksiyonlarıyla 0–1 arası derecelere çevrilir (28 °C → 0.7 ılık, 0.3 sıcak). 2) **Kural değerlendirme:** VE için min, VEYA için max alınarak her kuralın ateşleme gücü bulunur. 3) **Birleştirme:** her kuralın çıktı kümesi ateşleme gücünde kesilir ve max ile birleştirilir. 4) **Durulaştırma:** birleşik şekil tek sayıya çevrilir (genelde ağırlık merkezi/centroid). Bkz. Bölüm 4.6 (c).
+1) **Bulanıklaştırma:** keskin girdiler üyelik fonksiyonlarıyla 0–1 arası derecelere çevrilir (28 °C → çoğunlukla ılık, biraz sıcak). 2) **Kural değerlendirme:** VE için min, VEYA için max alınarak her kuralın ateşleme gücü bulunur. 3) **Birleştirme:** her kuralın çıktı kümesi ateşleme gücünde kesilir ve max ile birleştirilir. 4) **Durulaştırma:** birleşik şekil tek sayıya çevrilir (genelde ağırlık merkezi/centroid). Bkz. Bölüm 4.6 (c).
 
 </details>
 
@@ -1934,9 +1763,9 @@ Etiketli geçmiş veriden öğrenip yeni bir örneğin hangi önceden tanımlı 
 </details>
 
 <details>
-<summary><b>S34.</b> TP = 40, FN = 10, FP = 5, TN = 45 için doğruluk, kesinlik, duyarlılık, özgüllük ve F1'i hesaplayınız.</summary>
+<summary><b>S34.</b> Kesinlik, duyarlılık ve özgüllüğü tanımlayınız. Kesinlik ile duyarlılık arasındaki takası açıklayınız.</summary>
 
-Doğruluk = 85/100 = **0.85** · Kesinlik = 40/45 = **0.889** · Duyarlılık = 40/50 = **0.80** · Özgüllük = 45/50 = **0.90** · F1 = 2·0.889·0.8/(0.889+0.8) = **0.842**
+**Kesinlik:** "Pozitif" dediklerimin ne kadarı gerçekten pozitif? **Duyarlılık:** Gerçek pozitiflerin ne kadarını yakaladım? **Özgüllük:** Gerçek negatiflerin ne kadarına doğru şekilde "negatif" dedim? **Takas:** Model "pozitif" demekte cömertleşirse (eşik düşerse) daha çok pozitif yakalar (duyarlılık ↑) ama daha çok yanlış alarm verir (kesinlik ↓); temkinli olursa tersi olur. **F1-skoru** ikisini tek sayıda dengeler.
 
 </details>
 
@@ -1976,23 +1805,23 @@ Eğitim aşaması yoktur (örnek tabanlı). Test örneğinin eğitim kümesindek
 </details>
 
 <details>
-<summary><b>S40.</b> (Sayısal) Skorlar ve gerçek sınıflar: 0.95 P, 0.85 P, 0.78 N, 0.70 P, 0.62 P, 0.55 N, 0.48 P, 0.40 N, 0.30 N, 0.15 N. ROC noktalarını bulup AUC'yi hesaplayınız.</summary>
+<summary><b>S40.</b> ROC eğrisi nasıl oluşturulur? İyi ve kötü bir modelin eğrisi neye benzer?</summary>
 
-Skorları sırayla eşik yaparak (P → 0.2 yukarı, N → 0.2 sağa): (0,0) → (0,0.2) → (0,0.4) → (0.2,0.4) → (0.2,0.6) → (0.2,0.8) → (0.4,0.8) → (0.4,1) → (0.6,1) → (0.8,1) → (1,1). **AUC** = 0.2·0.4 + 0.2·0.8 + 0.6·1 = **0.84** (ya da 21/25 doğru sıralı P–N çifti). Bkz. Bölüm 6.10.
+Örnekler modelin skoruna göre büyükten küçüğe sıralanır; eşik en yukarıdan başlayıp aşağı indirilir. Her adımda sıradaki örnek gerçekten pozitifse eğri **yukarı**, negatifse **sağa** ilerler; (0, 0)'dan başlayıp (1, 1)'de biter. İyi modelde pozitifler listenin üstünde toplandığı için eğri önce dik yukarı çıkar ve **sol üst köşeye** yaklaşır (AUC → 1). Rastgele modelde eğri **köşegene** yakın kalır (AUC ≈ 0.5).
 
 </details>
 
 <details>
-<summary><b>S41.</b> Çok sınıflı karışıklık matrisinde kesinlik ve duyarlılık nasıl hesaplanır? Makro ve mikro ortalama farkı nedir?</summary>
+<summary><b>S41.</b> Çok sınıflı karışıklık matrisinde kesinlik ve duyarlılık nasıl bulunur? Makro ve mikro ortalama farkı nedir?</summary>
 
-Satırlar gerçek, sütunlar tahmin ise bir sınıfın **duyarlılığı** = köşegen değeri / **satır** toplamı, **kesinliği** = köşegen değeri / **sütun** toplamı. **Makro ortalama** her sınıfın ölçütünü ayrı hesaplayıp eşit ağırlıkla ortalar (küçük sınıflar da önemsenir). **Mikro ortalama** tüm sınıfların TP/FP/FN'lerini toplayıp tek hesap yapar; tek etiketli problemlerde doğruluğa eşittir.
+Satırlar gerçek, sütunlar tahmin ise her sınıf için \"o sınıf pozitif, diğerleri negatif\" diye düşünülür: **satıra** bakılarak o sınıfın ne kadarının yakalandığı (**duyarlılık**), **sütuna** bakılarak o sınıf denen örneklerin ne kadarının doğru olduğu (**kesinlik**) bulunur. **Makro ortalama** her sınıfın ölçütünü ayrı hesaplayıp eşit ağırlıkla ortalar (küçük sınıflar da önemsenir). **Mikro ortalama** tüm sınıfların TP/FP/FN'lerini toplayıp tek hesap yapar; tek etiketli problemlerde doğruluğa eşittir.
 
 </details>
 
 <details>
 <summary><b>S42.</b> Naive Bayes neden "naif"tir? Sıfır frekans problemi nedir?</summary>
 
-Sınıf verildiğinde **tüm özelliklerin birbirinden bağımsız** olduğunu varsayar ($P(x_1,\dots,x_n|c) = \prod P(x_i|c)$); gerçekte özellikler genelde ilişkilidir. Eğitimde bir özellik değeri bir sınıfla hiç görülmemişse o olasılık 0 olur ve tüm çarpımı sıfırlar; **Laplace düzeltmesi** (her sayıma 1 ekleme) ile çözülür.
+Sınıf bilindiğinde **tüm özelliklerin birbirinden bağımsız** olduğunu varsayar; gerçekte özellikler genelde ilişkilidir ama yöntem yine de iyi çalışır. Eğitimde bir özellik değeri bir sınıfla hiç görülmemişse o sınıfın olasılığı tamamen sıfırlanır (**sıfır frekans problemi**); **Laplace düzeltmesi** (her sayıma 1 ekleme) ile çözülür.
 
 </details>
 
@@ -2022,7 +1851,7 @@ Uyaran → **reseptörler** fiziksel enerjiyi elektrik sinyaline çevirir (**tra
 <details>
 <summary><b>S46.</b> Biyolojik nöron ile yapay nöron arasındaki benzerlikleri açıklayınız.</summary>
 
-Dendrit → giriş ($x_i$); sinaps gücü → ağırlık ($w_i$); soma'da toplama → $\sum w_i x_i$; eşik potansiyeli → bias ve aktivasyon fonksiyonu; akson → çıkış ($y$); sinaptik plastisite (Hebb) → ağırlık güncelleme (öğrenme). Formül: $y = f(\sum w_i x_i + \theta)$, ör. sigmoid $f(x) = 1/(1+e^{-x})$.
+Dendrit → giriş; sinaps gücü → ağırlık; soma'da toplama → ağırlıklı toplam; eşik potansiyeli → bias ve aktivasyon fonksiyonu; akson → çıkış; uyarıcı/baskılayıcı sinaps → pozitif/negatif ağırlık; sinaptik plastisite (Hebb) → ağırlık güncelleme (öğrenme). Beyindeki katmanlı işleme (duyu → talamus → korteks) de giriş → gizli → çıkış katmanlarına karşılık gelir.
 
 </details>
 
@@ -2034,9 +1863,9 @@ Perceptron girdi uzayını **tek bir doğru (hiperdüzlem)** ile ikiye ayırır;
 </details>
 
 <details>
-<summary><b>S48.</b> (Sayısal) w₁ = 0.3, w₂ = 0.2, b = −0.1, η = 0.1, basamak aktivasyon (net > 0 → 1). x = (0, 1), hedef t = 0 için bir güncelleme adımı yapınız.</summary>
+<summary><b>S48.</b> Perceptron nasıl öğrenir? Geri yayılım algoritmasını kısaca açıklayınız.</summary>
 
-net = 0.3·0 + 0.2·1 − 0.1 = **0.1** > 0 → y = 1; hata e = 0 − 1 = **−1**. Güncelleme: w₁ = 0.3 + 0.1·(−1)·0 = **0.3**, w₂ = 0.2 + 0.1·(−1)·1 = **0.1**, b = −0.1 + 0.1·(−1) = **−0.2**.
+**Perceptron:** Her örnekte tahmin yapar; doğruysa ağırlıklara dokunmaz, "1" demesi gerekirken "0" dediyse aktif girişlerin ağırlıklarını artırır, tersi durumda azaltır; hatasız bir tur olana kadar devam eder. **Geri yayılım (çok katmanlı ağlar):** giriş ileri geçirilip tahmin üretilir → tahmin ile gerçek arasındaki hata hesaplanır → hata çıkıştan girişe doğru geri dağıtılarak her ağırlığın hataya katkısı bulunur → ağırlıklar hatayı azaltacak yönde biraz değiştirilir (gradyan inişi) → binlerce kez tekrarlanır.
 
 </details>
 
@@ -2059,4 +1888,4 @@ net = 0.3·0 + 0.2·1 − 0.1 = **0.1** > 0 → y = 1; hata e = 0 − 1 = **−1
 - Yao, S. ve ark. — "ReAct: Synergizing Reasoning and Acting in Language Models", 2022
 - Minsky, M., Papert, S. — *Perceptrons*, 1969 (XOR problemi)
 
-> 🍀 **Sınavda başarılar!** Son tekrar için [Bölüm 10](#10-sınav-öncesi-hızlı-tekrar-ve-formül-kağıdı)'u ve ACO'daki [elle çözülmüş örneği](#17-elle-çözülmüş-örnek-sınavda-bu-tarz-soru-gelebilir) mutlaka gözden geçir.
+> 🍀 **Sınavda başarılar!** Son tekrar için [Bölüm 10](#10-sınav-öncesi-hızlı-tekrar)'u ve ACO'nun [üç temel mekanizmasını](#15-algoritmanın-üç-temel-mekanizması) mutlaka gözden geçir.
